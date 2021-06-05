@@ -18,3 +18,6 @@
 (defstate discord-conn
   :start (discord/start-connection! (:token config))
   :stop (discord/stop-connection! discord-conn))
+
+(defstate app-id
+  :start (:id @(discord/get-current-application-information! discord-conn)))
