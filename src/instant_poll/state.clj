@@ -7,7 +7,7 @@
 
 (defstate ^ScheduledExecutorService scheduler
   :start (Executors/newSingleThreadScheduledExecutor)
-  :stop (.shutdown scheduler))
+  :stop (.shutdown ^ScheduledExecutorService scheduler))
 
 (defstate polls
   :start (atom {}))
