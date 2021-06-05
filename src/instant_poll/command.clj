@@ -4,7 +4,7 @@
             [instant-poll.poll :as polls]
             [instant-poll.component :refer [make-components]]
             [discljord.messaging :as discord]
-            [instant-poll.state :refer [discord-conn config]]
+            [instant-poll.state :refer [discord-conn config app-id]]
             [instant-poll.interactions :refer [normal-response ephemeral-response]]))
 
 (def poll-option-names (map str (range 1 6)))
@@ -22,10 +22,11 @@
         :description "The poll question"
         :type 3
         :required true}]
-      (for [i poll-option-names]
-        {:name i
-         :description (str "Option no. " i)
-         :type 3})
+      (for [[i name] (map-indexed vector poll-option-names)]
+        {:name name
+         :description (str "Option no. " name)
+         :type 3
+         :required (< i 2)})
       [{:name "multi-vote"
         :description "Whether users have multiple votes (default: false)"
         :type 5}
@@ -66,9 +67,9 @@
 (def poll-option-pattern #"((.{1,15}):\s*)?(.{1,200})")
 
 (def poll-option-help
-  (str "Each poll option must be `<text>` or `<key>: <text>`.\n"
+  (str "Each poll option must be of the format `<text>` or `<key>: <text>`.\n"
        "`text` describes the option in 200 characters or less.\n"
-       "`key` is optional and assigns a short name to the option (such as \"A\" or \"a)\"). It must be 15 chracters at max."))
+       "`key` is optional and assigns a short name to the option (such as \"A\" or \"a)\"). It must be 15 characters at max."))
 
 (def question-help "The length of the question should not exceed 500 characters.")
 
@@ -106,9 +107,28 @@
 (defmethod handle-command ["poll" "help"]
   [interaction]
   (ephemeral-response
-   {:content "stub"}))
+   {:embeds
+    [{:title "Instant Poll Help"
+      :description (str "Use `/poll create` to create a poll in a text channel.\n"
+                        "Polls can be closed by the person who created the poll and by people who are allowed to delete messages.\n"
+                        "Information on the different options:")
+      :fields
+      [{:name "question"
+        :value (str "The question of your poll. " question-help)}
+       {:name "1..5"
+        :value (str "The options that voters can pick.\n" poll-option-help)}
+       {:name "multi-vote"
+        :value "Whether voters can pick multiple options. `False` by default."}
+       {:name "close-in"
+        :value "When set to a positive number `n`, the poll will be closed automatically after `n` seconds.\nBy default, this is not the case."}]}]}))
 
 (defmethod handle-command ["poll" "info"]
   [interaction]
   (ephemeral-response
-   {:content "stub"}))
+   {:content "I'm a Discord bot that lets you create live polls in your server. See `/poll help` for info on how to use my commands :smile:"
+    :components
+    [{:type 1
+      :components [{:type 2
+                    :style 5
+                    :label "Add me to your server"
+                    :url (str "https://discord.com/api/oauth2/authorize?client_id=" app-id "&scope=applications.commands")}]}]}))
