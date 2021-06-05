@@ -1,19 +1,9 @@
 # instant-poll
 
-FIXME
+instant-poll is a [Discord](https://discord.com) application that allows you to create polls with live feedback in text channels. 
 
-## Prerequisites
-
-You will need [Leiningen][] 2.0.0 or above installed.
-
-[leiningen]: https://github.com/technomancy/leiningen
-
-## Running
-
-To start a web server for the application, run:
-
-    lein ring server
+*More documentation to follow*
 
 ## License
 
-Copyright © 2021 FIXME
+Copyright © 2021 JohnnyJayJay
