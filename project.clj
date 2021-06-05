@@ -12,6 +12,7 @@
                  [mount "0.1.16"]
                  [org.suskalo/discljord "1.3.0-SNAPSHOT"]]
   :main instant-poll.handler
+  :aot :all
   :global-vars {*warn-on-reflection* true}
   :profiles
   {:dev {:dependencies [[javax.servlet/servlet-api "2.5"]
