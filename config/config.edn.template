@@ -1,0 +1,4 @@
+{:public-key "your Discord app's public key (https://discord.com/developers/applications)"
+ :token "your Discord app's bot token"
+ ; The setting below configures how long the bars of the poll results are
+ :bar-length 40}
