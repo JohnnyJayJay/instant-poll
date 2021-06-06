@@ -4,6 +4,21 @@ instant-poll is a [Discord](https://discord.com) application that allows you to 
 
 ![Fancy GIF](https://cdn.discordapp.com/attachments/649255956844118016/850806779256373318/ezgif.com-gif-maker.gif)
 
+## Features
+- No setup required, just plug and play
+- Real-time updating poll results
+- Cutting-edge Discord features (slash commands, message buttons)
+- Timed Polls
+- Polls with multiple votes per user
+- Gateway-free (you don't need to invite the bot to use it)
+
+## Add it to your server
+
+[**Add the official bot**](https://discord.com/oauth2/authorize?client_id=489108697864470531&scope=applications.commands)
+
+You will notice that, when you've authorised the app, it **will not join your server**. This is **intended**, **you can use the commands anyway**.
+You can verify this by typing `/poll info`.
+
 ## Usage
 Use `/poll create` to create a poll. 
 
@@ -13,6 +28,8 @@ Use `/poll create` to create a poll.
 | `1`..`5`     | The options voters can pick from              | Format: `(<key>: )?<text>` (key: 1-15 characters, text: 1-200 characters) |
 | `multi-vote` | Whether every voter can pick multiple options | True or False                                                             |
 | `close-in`   | Number of seconds after which poll is closed  | positive number, <= 0 will be ignored                                     |
+
+Polls can be closed by the poll creator and people who are allowed to delete messages.
 
 ## Hosting
 You can host this application yourself using [Docker](https://docker.com). Further prerequisites:
