@@ -33,14 +33,6 @@
        {:name "close-in"
         :description "A duration (in seconds) after which voting closes (default: no expiration)"
         :type 4}])}
-    {:name "close"
-     :description "Close an existing poll"
-     :type 1
-     :options
-     [{:name "poll-id"
-       :description "ID of the poll to close"
-       :type 3
-       :required true}]}
     {:name "help"
      :description "Display help for this bot"
      :type 1}
