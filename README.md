@@ -71,3 +71,5 @@ Depending on when you registered the slash commands, you may have to wait up to 
 ## License
 
 Copyright © 2021 JohnnyJayJay
+
+Licensed under the [MIT License](./LICENSE).
