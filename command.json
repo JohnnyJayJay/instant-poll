@@ -1,4 +1,4 @@
-{
+[{
   "name" : "poll",
   "description" : "Create and manage polls",
   "options" : [ {
@@ -53,4 +53,4 @@
     "description" : "Display information about this bot",
     "type" : 1
   } ]
-}
+}]
