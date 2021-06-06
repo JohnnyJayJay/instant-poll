@@ -1,0 +1,56 @@
+{
+  "name" : "poll",
+  "description" : "Create and manage polls",
+  "options" : [ {
+    "name" : "create",
+    "description" : "Create a new poll",
+    "type" : 1,
+    "options" : [ {
+      "name" : "question",
+      "description" : "The poll question",
+      "type" : 3,
+      "required" : true
+    }, {
+      "name" : "1",
+      "description" : "Option no. 1",
+      "type" : 3,
+      "required" : true
+    }, {
+      "name" : "2",
+      "description" : "Option no. 2",
+      "type" : 3,
+      "required" : true
+    }, {
+      "name" : "3",
+      "description" : "Option no. 3",
+      "type" : 3,
+      "required" : false
+    }, {
+      "name" : "4",
+      "description" : "Option no. 4",
+      "type" : 3,
+      "required" : false
+    }, {
+      "name" : "5",
+      "description" : "Option no. 5",
+      "type" : 3,
+      "required" : false
+    }, {
+      "name" : "multi-vote",
+      "description" : "Whether users have multiple votes (default: false)",
+      "type" : 5
+    }, {
+      "name" : "close-in",
+      "description" : "A duration (in seconds) after which voting closes (default: no expiration)",
+      "type" : 4
+    } ]
+  }, {
+    "name" : "help",
+    "description" : "Display help for this bot",
+    "type" : 1
+  }, {
+    "name" : "info",
+    "description" : "Display information about this bot",
+    "type" : 1
+  } ]
+}
