@@ -58,7 +58,19 @@ Alternatively, you can set a fixed port by changing this: `- "8090"` to `-"<your
 port that you want your reverse proxy to forward to.
 
 #### Slash Commands Registration
-TBA
+
+Run
+``` bash
+wget https://github.com/JohnnyJayJay/instant-poll/blob/main/command.json
+token="your-bot-token"
+appid="your-bot-id"
+curl -d "@command.json" \ 
+     -H "Content-Type: application/json" \
+     -H "Authorization: Bot $token" \ 
+     https://discord.com/api/v9/applications/$appid/commands
+```
+
+If you get a success response, you've registered the command(s) in your app.
 
 ### Run
 
