@@ -8,7 +8,7 @@
                  [ring/ring-core "1.9.3"]
                  [ring/ring-json "0.5.1"]
                  [bananaoomarang/ring-debug-logging "1.1.0"]
-                 [com.github.johnnyjayjay/ring-discord-auth "0.1.0-SNAPSHOT"]
+                 [com.github.johnnyjayjay/ring-discord-auth "0.1.0"]
                  [mount "0.1.16"]
                  [org.suskalo/discljord "1.3.0-SNAPSHOT"]]
   :main instant-poll.handler
