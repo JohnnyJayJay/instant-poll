@@ -4,7 +4,7 @@
             [ring-debug-logging.core :refer [wrap-with-logger]]
             [ring.middleware.reload :refer [wrap-reload]]
             [ring.util.response :as response]
-            [instant-poll.auth :refer [wrap-authenticate]]
+            [ring-discord-auth.core :refer [wrap-authenticate]]
             [instant-poll.state :refer [config]]
             [instant-poll.command :refer [handle-command]]
             [instant-poll.component :refer [handle-button-press]]
