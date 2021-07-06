@@ -1,8 +1,8 @@
 (ns instant-poll.component
   (:require [clojure.string :as string]
             [instant-poll.poll :as polls]
-            [instant-poll.interactions :refer [ephemeral-response normal-response]]
-            [instant-poll.state :refer [discord-conn config]]
+            [instant-poll.interactions :refer [ephemeral-response normal-response update-message-response]]
+            [instant-poll.state :refer [discord-conn config polls]]
             [discljord.messaging :as discord]
             [discljord.util :refer [parse-if-str]]
             [discljord.formatting :as discord-fmt]
@@ -33,17 +33,21 @@
       :custom_id (str close-prefix id)}]}])
 
 (defn handle-button-press
-  [{{{user-id :id} :user :keys [permissions]} :member {:keys [custom-id]} :data}]
+  [{{{user-id :id} :user :keys [permissions]} :member
+    {:keys [custom-id]} :data
+    {message-id :id :keys [channel-id]} :message
+    :as _interaction}]
   (let [[poll-id option] (parse-custom-id custom-id)]
     (if-let [{:keys [application-id interaction-token creator-id] :as poll} (polls/find-poll poll-id)]
       (if (= option :close)
         (if (or (= user-id creator-id) (discord-perms/has-permission-flag? :manage-messages (parse-if-str permissions)))
-          (do
-            (polls/close-poll! poll-id)
-            (discord/edit-original-interaction-response! discord-conn application-id interaction-token :components [])
-            (normal-response {:content (str (discord-fmt/mention-user user-id) " closed this poll.")}))
+          (let [poll (polls/close-poll! poll-id)]
+            (update-message-response
+             {:content (str (polls/render-poll poll (:bar-length config)) \newline
+                            "Poll closed <t:" (quot (System/currentTimeMillis) 1000) ":R> by " (discord-fmt/mention-user user-id) \.)
+              :components []}))
           (ephemeral-response {:content "You do not have permission to close this poll."}))
         (let [updated-poll (polls/toggle-vote! poll-id user-id option)]
-          {:type 7
-           :data {:content (polls/render-poll updated-poll (:bar-length config))}}))
+          (swap! polls update poll-id assoc :channel-id channel-id :message-id message-id)
+          (update-message-response {:content (str (polls/render-poll updated-poll (:bar-length config)) \newline (polls/close-notice updated-poll true))})))
       (ephemeral-response {:content "This poll isn't active anymore."}))))

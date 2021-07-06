@@ -25,7 +25,8 @@
 
 (defn create-poll! [poll close-in close-action]
   (let [id (generate-poll-id id-length)
-        poll (assoc poll :votes {} :id id)]
+        poll (cond-> (assoc poll :votes {} :id id)
+               (pos? close-in) (assoc :close-timestamp (+' (quot (System/currentTimeMillis) 1000) close-in)))]
     (swap! polls assoc id poll)
     (when (pos? close-in)
       (.schedule scheduler ^Runnable (fn [] (close-action (close-poll! id))) ^long close-in ^TimeUnit TimeUnit/SECONDS))
@@ -73,3 +74,7 @@
      option-list
      option-results
      total-votes)))
+
+(defn close-notice [{:keys [close-timestamp] :as _poll} open?]
+  (when close-timestamp
+    (str "Poll close" (if open? \s \d) " <t:" close-timestamp ":R>")))
