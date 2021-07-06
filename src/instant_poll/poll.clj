@@ -26,7 +26,7 @@
 (defn create-poll! [poll close-in close-action]
   (let [id (generate-poll-id id-length)
         poll (cond-> (assoc poll :votes {} :id id)
-               close-in (assoc :close-timestamp (+' (quot (System/currentTimeMillis) 1000) close-in)))]
+               (pos? close-in) (assoc :close-timestamp (+' (quot (System/currentTimeMillis) 1000) close-in)))]
     (swap! polls assoc id poll)
     (when (pos? close-in)
       (.schedule scheduler ^Runnable (fn [] (close-action (close-poll! id))) ^long close-in ^TimeUnit TimeUnit/SECONDS))
