@@ -40,8 +40,7 @@
                                      (if (and multi-vote? (contains? votes-map user))
                                        (update votes-map user conj option)
                                        (assoc votes-map user #{option})))))]
-    (println "poll" poll)
-     (cond-> poll
+    (cond-> poll
       (empty? (get-in poll [:votes user])) (update :votes dissoc user))))
 
 (defn toggle-vote! [poll-id user option]
@@ -66,7 +65,6 @@
         width (reduce max (map count (keys options)))
         option-list (string/join \newline (map (fn [[key text]] (str key ": " text)) options))
         option-results (string/join \newline (map #(render-option-result % width (vote-counts %) total-votes) (keys options)))]
-    (println width)
     (format
      "%s%n%n%s%n```%n%s%n```(Total votes: %d)"
      question

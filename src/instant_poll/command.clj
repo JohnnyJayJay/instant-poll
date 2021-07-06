@@ -74,16 +74,13 @@
 (defmethod handle-command ["poll" "create"]
   [{:keys [application-id token guild-id] {{user-id :id} :user} :member :as interaction}]
   (let [{:keys [question multi-vote close-in] :or {multi-vote false close-in -1} :as option-map} (command-options interaction 1)
-        _ (println option-map)
         option-matches (match-poll-options option-map)]
     (cond
       (nil? guild-id) (ephemeral-response {:content "I'm afraid there are not a lot of people you can ask questions here :smile:"})
       (> (count question) 500) (ephemeral-response {:content (str "Couldn't create poll.\n\n" question-help)})
       (some nil? option-matches) (ephemeral-response {:content (str "Couldn't create poll.\n\n" poll-option-help)})
       :else
-      (let [_ (println option-matches)
-            poll-options (option-matches->poll-option-map option-matches)
-            _ (println poll-options)
+      (let [poll-options (option-matches->poll-option-map option-matches)
             poll (polls/create-poll! {:question question
                                       :options poll-options
                                       :multi-vote? multi-vote
