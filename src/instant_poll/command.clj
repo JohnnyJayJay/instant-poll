@@ -122,4 +122,15 @@
       :components [{:type 2
                     :style 5
                     :label "Add me to your server"
-                    :url (str "https://discord.com/api/oauth2/authorize?client_id=" app-id "&scope=applications.commands")}]}]}))
+                    :emoji {:name "📝"}
+                    :url (str "https://discord.com/api/oauth2/authorize?client_id=" app-id "&scope=applications.commands")}
+                   {:type 2
+                    :style 5
+                    :label "Vote for me on top.gg"
+                    :emoji {:name "✅"}
+                    :url (str "https://top.gg/bot/" app-id)}
+                   {:type 2
+                    :style 5
+                    :label "View source code"
+                    :emoji {:name "🛠️"}
+                    :url "https://github.com/JohnnyJayJay/instant-poll"}]}]}))
