@@ -91,8 +91,9 @@
                                       :interaction-token token
                                       :creator-id user-id}
                                      close-in
-                                     (fn [{:keys [application-id interaction-token] :as poll}]
-                                       (discord/edit-original-interaction-response! discord-conn application-id interaction-token :components [])))]
+                                     (fn [{:keys [application-id interaction-token channel-id message-id] :as poll}]
+                                       (discord/edit-original-interaction-response! discord-conn application-id interaction-token :components [])
+                                       (discord/edit-message! discord-conn channel-id message-id :components [])))]
         (normal-response {:content (polls/render-poll poll (:bar-length config))
                           :components (make-components poll)})))))
 
