@@ -44,10 +44,10 @@
           (let [poll (polls/close-poll! poll-id)]
             (update-message-response
              {:content (str (polls/render-poll poll (:bar-length config)) \newline
-                            (discord-fmt/mention-user user-id) " closed this poll.")
+                            "Poll closed <t:" (quot (System/currentTimeMillis) 1000) ":R> by " (discord-fmt/mention-user user-id) \.)
               :components []}))
           (ephemeral-response {:content "You do not have permission to close this poll."}))
         (let [updated-poll (polls/toggle-vote! poll-id user-id option)]
           (swap! polls update poll-id assoc :channel-id channel-id :message-id message-id)
-          (update-message-response {:content (polls/render-poll updated-poll (:bar-length config))})))
+          (update-message-response {:content (str (polls/render-poll updated-poll (:bar-length config)) \newline (polls/close-notice updated-poll true))})))
       (ephemeral-response {:content "This poll isn't active anymore."}))))
