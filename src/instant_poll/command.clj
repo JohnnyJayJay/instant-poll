@@ -88,9 +88,11 @@
                                       :interaction-token token
                                       :creator-id user-id}
                                      close-in
-                                     (fn [{:keys [application-id interaction-token] :as poll}]
-                                       (discord/edit-original-interaction-response! discord-conn application-id interaction-token :components [])))]
-        (normal-response {:content (polls/render-poll poll (:bar-length config))
+                                     (fn [{:keys [application-id interaction-token channel-id message-id close-timestamp] :as poll}]
+                                       (let [edits [:components [] :content (str (polls/render-poll poll (:bar-length config)) \newline (polls/close-notice poll false))]]
+                                         (apply discord/edit-original-interaction-response! discord-conn application-id interaction-token edits)
+                                         (apply discord/edit-message! discord-conn channel-id message-id edits))))]
+        (normal-response {:content (str (polls/render-poll poll (:bar-length config)) \newline (polls/close-notice poll true))
                           :components (make-components poll)})))))
 
 (defmethod handle-command ["poll" "help"]
