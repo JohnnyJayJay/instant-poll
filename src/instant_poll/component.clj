@@ -1,7 +1,7 @@
 (ns instant-poll.component
   (:require [clojure.string :as string]
             [instant-poll.poll :as polls]
-            [instant-poll.interactions :refer [ephemeral-response normal-response]]
+            [instant-poll.interactions :refer [ephemeral-response normal-response update-message-response]]
             [instant-poll.state :refer [discord-conn config]]
             [discljord.messaging :as discord]
             [discljord.util :refer [parse-if-str]]
@@ -38,12 +38,12 @@
     (if-let [{:keys [application-id interaction-token creator-id] :as poll} (polls/find-poll poll-id)]
       (if (= option :close)
         (if (or (= user-id creator-id) (discord-perms/has-permission-flag? :manage-messages (parse-if-str permissions)))
-          (do
-            (polls/close-poll! poll-id)
-            (discord/edit-original-interaction-response! discord-conn application-id interaction-token :components [])
-            (normal-response {:content (str (discord-fmt/mention-user user-id) " closed this poll.")}))
+          (let [poll (polls/close-poll! poll-id)]
+            (update-message-response
+             {:content (str (polls/render-poll poll (:bar-length config)) \newline
+                            (discord-fmt/mention-user user-id) " closed this poll.")
+              :components []}))
           (ephemeral-response {:content "You do not have permission to close this poll."}))
         (let [updated-poll (polls/toggle-vote! poll-id user-id option)]
-          {:type 7
-           :data {:content (polls/render-poll updated-poll (:bar-length config))}}))
+          (update-message-response {:content (polls/render-poll updated-poll (:bar-length config))})))
       (ephemeral-response {:content "This poll isn't active anymore."}))))
