@@ -7,7 +7,7 @@
             [instant-poll.state :refer [discord-conn config app-id]]
             [instant-poll.interactions :refer [normal-response ephemeral-response]]))
 
-(def poll-option-names (map str (range 1 6)))
+(def poll-option-names (map str (range 1 11)))
 
 (def poll-command
   {:name "poll"

@@ -18,19 +18,21 @@
     (string/split custom-id option-id-separator-pattern 2)))
 
 (defn make-components [{:keys [options id] :as poll}]
-  [{:type 1
-    :components
-    (for [[key _] options]
-      {:type 2
-       :style 1
-       :label key
-       :custom_id (str id option-id-separator key)})}
-   {:type 1
-    :components
-    [{:type 2
-      :style 4
-      :label "Close Poll"
-      :custom_id (str close-prefix id)}]}])
+  (concat
+   (for [option-group (partition-all 5 options)]
+     {:type 1
+      :components
+      (for [[key _] option-group]
+        {:type 2
+         :style 1
+         :label key
+         :custom_id (str id option-id-separator key)})})
+   [{:type 1
+     :components
+     [{:type 2
+       :style 4
+       :label "Close Poll"
+       :custom_id (str close-prefix id)}]}]))
 
 (defn handle-button-press
   [{{{user-id :id} :user :keys [permissions]} :member
