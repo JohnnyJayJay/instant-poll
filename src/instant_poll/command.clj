@@ -84,7 +84,7 @@
          :fields
          [{:name "question"
            :value (str "The question of your poll. " question-help)}
-          {:name "1..5"
+          {:name "1..10"
            :value (str "The options that voters can pick.\n" poll-option-help)}
           {:name "multi-vote"
            :value "Whether voters can pick multiple options. `False` by default."}
