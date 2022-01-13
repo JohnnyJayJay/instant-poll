@@ -36,13 +36,11 @@
 (defn toggle-vote! [poll-id user option]
   (get (swap! polls update poll-id toggle-vote user option) poll-id))
 
-(defn poll-exists? [])
-
 (defn count-votes [options votes]
   (reduce-kv
-   (fn [acc id opts]
+   (fn [acc _user-id opts]
      (reduce #(update %1 %2 inc) acc opts))
-   (zipmap (keys options) (repeat 0))
+   (zipmap (map first options) (repeat 0))
    votes))
 
 (defn render-option-result [option bar-length width votes total-votes]
@@ -52,9 +50,9 @@
 (defn render-poll [{:keys [votes question options] :as _poll} bar-length]
   (let [vote-counts (count-votes options votes)
         total-votes (count votes)
-        width (reduce max (map count (keys options)))
+        width (->> options (map first) (map count) (reduce max))
         option-list (string/join \newline (map (fn [[key text]] (str key ": " text)) options))
-        option-results (string/join \newline (map #(render-option-result % bar-length width (vote-counts %) total-votes) (keys options)))]
+        option-results (string/join \newline (map #(render-option-result % bar-length width (vote-counts %) total-votes) (map first options)))]
     (format
      "%s%n%n%s%n```%n%s%n```(Total votes: %d)"
      question

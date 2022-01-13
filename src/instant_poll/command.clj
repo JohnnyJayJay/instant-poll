@@ -42,8 +42,8 @@
 (defn match-poll-options [option-map]
   (map (partial re-matches poll-option-pattern) (keep (comp option-map keyword) poll-option-names)))
 
-(defn option-matches->poll-option-map [option-matches]
-  (into {} (map-indexed (fn [i [_ _ key text]] [(or key (str (inc i))) text]) option-matches)))
+(defn option-matches->poll-options [option-matches]
+  (map-indexed (fn [i [_ _ key text]] [(or key (str (inc i))) text]) option-matches))
 
 (defhandler create-command
   ["create"]
@@ -55,7 +55,7 @@
       (> (count question) 500) (-> {:content (str "Couldn't create poll.\n\n" question-help)} rsp/channel-message rsp/ephemeral)
       (some nil? option-matches) (-> {:content (str "Couldn't create poll.\n\n" poll-option-help)} rsp/channel-message rsp/ephemeral)
       :else
-      (let [poll-options (option-matches->poll-option-map option-matches)
+      (let [poll-options (option-matches->poll-options option-matches)
             poll (polls/create-poll!
                   id
                   {:question question

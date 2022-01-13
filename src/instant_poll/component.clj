@@ -35,11 +35,6 @@
     (swap! polls update id assoc :channel-id channel-id :message-id message-id)
     (rsp/update-message {:content (str (polls/render-poll updated-poll (:bar-length config)) \newline (polls/close-notice updated-poll true))})))
 
-(defn abbreviate [s n]
-  (if (< (count s) n)
-    s
-    ()))
-
 (defmethod poll-action "show-votes"
   [_ {} {:keys [votes] :as _poll} _]
   (-> {:content

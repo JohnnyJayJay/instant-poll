@@ -25,7 +25,7 @@
 (defn wrap-clean-json [handler]
   #(handler (update % :body discord-util/clean-json-input)))
 
-(defn -main [& args]
+(defn -main [& _args]
   (mount/start)
   (http-server/run-server
    (-> handler
