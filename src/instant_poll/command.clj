@@ -24,7 +24,8 @@
       [(cmd/option "question" "The poll question" :string :required true)]
       (for [[i name] (map-indexed vector poll-option-names)]
         (cmd/option name (str "Option " name) :string :required (< i 2)))
-      [(cmd/option "multi-vote" "Whether users have multiple votes (default: false)" :boolean)
+      [(cmd/option "open" "Whether the poll should be open/not anonymous (default: false)" :boolean)
+       (cmd/option "multi-vote" "Whether users have multiple votes (default: false)" :boolean)
        (cmd/option "close-in" "A duration (in seconds) after which voting closes (default: no expiration)" :integer)]))
     (cmd/sub-command "help" "Display help for this bot")
     (cmd/sub-command "info" "Display information about this bot")]))
@@ -46,8 +47,8 @@
 
 (defhandler create-command
   ["create"]
-  {:keys [application-id token guild-id id] {{user-id :id} :user} :member :as interaction}
-  {:keys [question multi-vote close-in] :or {multi-vote false close-in -1} :as option-map}
+  {:keys [application-id token guild-id id] {{user-id :id} :user} :member :as _interaction}
+  {:keys [question open multi-vote close-in] :or {open false multi-vote false close-in -1} :as option-map}
   (let [option-matches (match-poll-options option-map)]
     (cond
       (nil? guild-id) (-> {:content "I'm afraid there are not a lot of people you can ask questions here :smile:"} rsp/channel-message rsp/ephemeral)
@@ -59,6 +60,7 @@
                   id
                   {:question question
                    :options poll-options
+                   :open open
                    :multi-vote? multi-vote
                    :application-id application-id
                    :interaction-token token
@@ -86,6 +88,8 @@
            :value (str "The question of your poll. " question-help)}
           {:name "1..10"
            :value (str "The options that voters can pick.\n" poll-option-help)}
+          {:name "open"
+           :value "When set to `true`, everybody will be able to see who voted for which options. By default, this is `false`."}
           {:name "multi-vote"
            :value "Whether voters can pick multiple options. `False` by default."}
           {:name "close-in"
