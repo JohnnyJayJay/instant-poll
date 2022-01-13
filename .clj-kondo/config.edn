@@ -1,0 +1,4 @@
+{:hooks {:analyze-call {slash.command/handler hooks.slash/handler
+                        slash.command/defhandler hooks.slash/defhandler
+                        slash.command/group hooks.slash/group
+                        slash.command/defpaths hooks.slash/defpaths}}}
