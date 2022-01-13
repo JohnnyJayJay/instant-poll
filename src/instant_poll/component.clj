@@ -40,7 +40,8 @@
           (let [poll (polls/close-poll! poll-id)]
             (rsp/update-message
              {:content (str (polls/render-poll poll (:bar-length config)) \newline
-                            "Poll closed <t:" (quot (System/currentTimeMillis) 1000) ":R> by " (discord-fmt/mention-user user-id) \.)
+                            "Poll closed " (discord-fmt/timestamp (quot (System/currentTimeMillis) 1000) :relative-time)
+                            " by " (discord-fmt/mention-user user-id) \.)
               :components []}))
           (-> {:content "You do not have permission to close this poll."} rsp/channel-message rsp/ephemeral))
         (let [updated-poll (polls/toggle-vote! poll-id user-id option)]
