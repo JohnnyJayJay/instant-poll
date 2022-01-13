@@ -9,7 +9,7 @@
             [slash.command.structure :as cmd]
             [slash.command :refer [defhandler defpaths group]]))
 
-(def poll-option-names (map str (range 1 11)))
+(def poll-option-names (map str (range 1 16)))
 
 (def poll-command
   (cmd/command
@@ -86,7 +86,7 @@
          :fields
          [{:name "question"
            :value (str "The question of your poll. " question-help)}
-          {:name "1..10"
+          {:name "1..15"
            :value (str "The options that voters can pick.\n" poll-option-help)}
           {:name "open"
            :value "When set to `true`, everybody will be able to see who voted for which options. By default, this is `false`."}
