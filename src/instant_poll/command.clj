@@ -24,7 +24,7 @@
         :required true}]
       (for [[i name] (map-indexed vector poll-option-names)]
         {:name name
-         :description (str "Option no. " name)
+         :description (str "Option " name)
          :type 3
          :required (< i 2)})
       [{:name "multi-vote"
