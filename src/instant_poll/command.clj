@@ -46,7 +46,7 @@
 
 (defhandler create-command
   ["create"]
-  {:keys [application-id token guild-id] {{user-id :id} :user} :member :as interaction}
+  {:keys [application-id token guild-id id] {{user-id :id} :user} :member :as interaction}
   {:keys [question multi-vote close-in] :or {multi-vote false close-in -1} :as option-map}
   (let [option-matches (match-poll-options option-map)]
     (cond
@@ -56,6 +56,7 @@
       :else
       (let [poll-options (option-matches->poll-option-map option-matches)
             poll (polls/create-poll!
+                  id
                   {:question question
                    :options poll-options
                    :multi-vote? multi-vote

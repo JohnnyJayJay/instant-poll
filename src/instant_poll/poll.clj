@@ -23,9 +23,8 @@
       first
       (get poll-id)))
 
-(defn create-poll! [poll close-in close-action]
-  (let [id (generate-poll-id id-length)
-        poll (cond-> (assoc poll :votes {} :id id)
+(defn create-poll! [id poll close-in close-action]
+  (let [poll (cond-> (assoc poll :votes {} :id id)
                (pos? close-in) (assoc :close-timestamp (+' (quot (System/currentTimeMillis) 1000) close-in)))]
     (swap! polls assoc id poll)
     (when (pos? close-in)
