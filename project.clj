@@ -10,7 +10,8 @@
                  [bananaoomarang/ring-debug-logging "1.1.0"]
                  [com.github.johnnyjayjay/ring-discord-auth "0.2.1"]
                  [mount "0.1.16"]
-                 [org.suskalo/discljord "1.3.0-SNAPSHOT"]]
+                 [org.suskalo/discljord "1.3.0"]
+                 [com.github.johnnyjayjay/slash "0.3.0-SNAPSHOT"]]
   :main instant-poll.handler
   :aot :all
   :global-vars {*warn-on-reflection* true}
