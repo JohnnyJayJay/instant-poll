@@ -7,7 +7,7 @@
             [instant-poll.state :refer [discord-conn config app-id]]
             [instant-poll.interactions :refer [normal-response ephemeral-response]]))
 
-(def poll-option-names (map str (range 1 6)))
+(def poll-option-names (map str (range 1 11)))
 
 (def poll-command
   {:name "poll"
@@ -24,7 +24,7 @@
         :required true}]
       (for [[i name] (map-indexed vector poll-option-names)]
         {:name name
-         :description (str "Option no. " name)
+         :description (str "Option " name)
          :type 3
          :required (< i 2)})
       [{:name "multi-vote"
