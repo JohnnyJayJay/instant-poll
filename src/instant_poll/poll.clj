@@ -1,18 +1,8 @@
 (ns instant-poll.poll
-  (:require [mount.core :refer [defstate]]
-            [clojure.string :as string]
+  (:require [clojure.string :as string]
             [instant-poll.bar :as bar]
-            [instant-poll.state :refer [discord-conn scheduler polls]]
-            [discljord.messaging :as discord])
+            [instant-poll.state :refer [scheduler polls]])
   (:import (java.util.concurrent TimeUnit)))
-
-(def id-length 50)
-
-(def alphabet
-  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789")
-
-(defn generate-poll-id [length]
-  (string/join (repeatedly length #(rand-nth alphabet))))
 
 (defn find-poll [poll-id]
   (@polls poll-id))
@@ -23,9 +13,8 @@
       first
       (get poll-id)))
 
-(defn create-poll! [poll close-in close-action]
-  (let [id (generate-poll-id id-length)
-        poll (cond-> (assoc poll :votes {} :id id)
+(defn create-poll! [id poll close-in close-action]
+  (let [poll (cond-> (assoc poll :votes {} :id id)
                (pos? close-in) (assoc :close-timestamp (+' (quot (System/currentTimeMillis) 1000) close-in)))]
     (swap! polls assoc id poll)
     (when (pos? close-in)
@@ -56,16 +45,16 @@
    (zipmap (keys options) (repeat 0))
    votes))
 
-(defn render-option-result [option width votes total-votes]
+(defn render-option-result [option bar-length width votes total-votes]
   (let [part (if (= total-votes 0) 0 (/ votes total-votes))]
-    (format "%s %s (%.1f%%)" (format (str "%-" width \s) option) (bar/render 40 part) (double (* 100 part)))))
+    (format "%s %s (%.1f%%)" (format (str "%-" width \s) option) (bar/render bar-length  part) (double (* 100 part)))))
 
 (defn render-poll [{:keys [votes question options] :as _poll} bar-length]
   (let [vote-counts (count-votes options votes)
         total-votes (count votes)
         width (reduce max (map count (keys options)))
         option-list (string/join \newline (map (fn [[key text]] (str key ": " text)) options))
-        option-results (string/join \newline (map #(render-option-result % width (vote-counts %) total-votes) (keys options)))]
+        option-results (string/join \newline (map #(render-option-result % bar-length width (vote-counts %) total-votes) (keys options)))]
     (format
      "%s%n%n%s%n```%n%s%n```(Total votes: %d)"
      question
