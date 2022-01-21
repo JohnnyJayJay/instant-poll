@@ -74,7 +74,7 @@
     :else
     (let [options (->> poll-option-names (keep (comp option-map keyword)) (map parse-option))
           max-key-length (:max-key-length config)
-          custom-keys? (every? #(<= (:key %) max-key-length) options)
+          custom-keys? (every? #(<= (count (:custom-key %)) max-key-length) options)
           poll-options (map-indexed (partial apply-key-policy custom-keys?) options)
           poll (polls/create-poll!
                 id
