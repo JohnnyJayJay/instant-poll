@@ -4,10 +4,12 @@
             [instant-poll.poll :as polls]
             [instant-poll.component :refer [make-components]]
             [discljord.messaging :as discord]
+            [discljord.formatting :as dfmt]
             [instant-poll.state :refer [discord-conn config app-id]]
             [slash.response :as rsp]
             [slash.command.structure :as cmd]
-            [slash.command :refer [defhandler defpaths group]]))
+            [slash.command :refer [defhandler defpaths group]])
+  (:import (com.vdurmont.emoji EmojiManager)))
 
 (def poll-option-names (map str (range 1 16)))
 
@@ -38,6 +40,29 @@
        "`key` is optional and assigns a short name to the option (such as \"A\" or \"a)\"). It must be 15 characters at max."))
 
 (def question-help "The length of the question should not exceed 500 characters.")
+
+(defn parse-option [opt-string]
+  (let [[key-part desc-part] (string/split opt-string #"\s*;\s*" 2)
+        [emoji-prefix key] (string/split key-part #"\s+" 2)
+        [_ emoji-a emoji-name emoji-id :as custom-emoji] (re-matches dfmt/emoji-mention emoji-prefix)
+        unicode-emoji? (EmojiManager/isEmoji ^String emoji-prefix)
+        emoji (cond
+                unicode-emoji? {:name emoji-prefix}
+                custom-emoji {:name emoji-name
+                              :id emoji-id
+                              :animated (some? emoji-a)})
+        short (if emoji key key-part)]
+    {:custom-key short
+     :description desc-part
+     :emoji emoji}))
+
+(defn apply-key-policy [custom-keys? num {:keys [custom-key description emoji] :as _opt}]
+  (let [[key desc] (if custom-keys?
+                     [custom-key description]
+                     [(nth poll-option-names num) (cond-> custom-key description (str "; " description))])]
+    {:key key
+     :description desc
+     :emoji emoji}))
 
 (defn match-poll-options [option-map]
   (map (partial re-matches poll-option-pattern) (keep (comp option-map keyword) poll-option-names)))
