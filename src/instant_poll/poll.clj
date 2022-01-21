@@ -58,9 +58,9 @@
                            options))
         option-results (string/join \newline (map #(render-option-result % bar-length width (vote-counts %) total-votes) (map :key options)))]
     (format
-     "%s%n%n%s%n```%n%s%n```(Total votes: %d)"
+     "%s%n%s%n```%n%s%n```(Total votes: %d)"
      question
-     option-list
+     (cond->> option-list (seq option-list) (str \newline))
      option-results
      total-votes)))
 
