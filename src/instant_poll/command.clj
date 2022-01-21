@@ -32,14 +32,14 @@
     (cmd/sub-command "help" "Display help for this bot")
     (cmd/sub-command "info" "Display information about this bot")]))
 
-(def poll-option-pattern #"((.{1,15}):\s*)?(.{1,200})")
-
 (def poll-option-help
-  (str "Each poll option must be of the format `<text>` or `<key>: <text>`.\n"
-       "`text` describes the option in 200 characters or less.\n"
-       "`key` is optional and assigns a short name to the option (such as \"A\" or \"a)\"). It must be 15 characters at max."))
-
-(def question-help "The length of the question should not exceed 500 characters.")
+  (str "A poll option has the format `<emoji>? <key>? ; <description>`. The emoji and the key will be displayed on the vote button."
+       " The key will also be used to identify the option in the vote distribution diagram. Some example options:\n\n"
+       "- 'Yes'\n"
+       "- '🤔 Maybe ; I'm still unsure and will decide later'\n"
+       "- '<:simon_peek:863544593483825182> How about that? ; Custom emojis are allowed too.'\n"
+       "- 'No emoji ; No emoji is required to provide a longer description.'\n"
+       "- '🙂 No extra description'"))
 
 (defn parse-option [opt-string]
   (let [[key-part desc-part] (string/split opt-string #"\s*;\s*" 2)
@@ -105,7 +105,7 @@
                            "Information on the different options:")
          :fields
          [{:name "question"
-           :value (str "The question of your poll. " question-help)}
+           :value "The question of your poll. "}
           {:name "1..15"
            :value (str "The options that voters can pick.\n" poll-option-help)}
           {:name "open"
