@@ -50,7 +50,7 @@
 (defn render-poll [{:keys [votes question options] :as _poll} bar-length]
   (let [vote-counts (count-votes options votes)
         total-votes (count votes)
-        width (->> options (map first) (map count) (reduce max))
+        width (->> options (map :key) (map count) (reduce max))
         option-list (string/join
                      \newline
                      (keep (fn [{:keys [key description]}]
