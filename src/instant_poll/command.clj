@@ -8,6 +8,7 @@
             [instant-poll.state :refer [discord-conn config app-id]]
             [slash.response :as rsp]
             [slash.command.structure :as cmd]
+            [slash.component.structure :as cmp]
             [slash.command :refer [defhandler defpaths group]])
   (:import (com.vdurmont.emoji EmojiManager)))
 
@@ -122,23 +123,19 @@
   _
   (-> {:content "I'm a Discord bot that lets you create live polls in your server. See `/poll help` for info on how to use my commands :smile:"
        :components
-       [{:type 1
-         :components
-         [{:type 2
-           :style 5
-           :label "Add me to your server"
-           :emoji {:name "📝"}
-           :url (str "https://discord.com/api/oauth2/authorize?client_id=" app-id "&scope=applications.commands")}
-          {:type 2
-           :style 5
-           :label "Vote for me on top.gg"
-           :emoji {:name "✅"}
-           :url (str "https://top.gg/bot/" app-id)}
-          {:type 2
-           :style 5
-           :label "View source code"
-           :emoji {:name "🛠️"}
-           :url "https://github.com/JohnnyJayJay/instant-poll"}]}]}
+       [(cmp/action-row
+         (cmp/link-button
+          (str "https://discord.com/api/oauth2/authorize?client_id=" app-id "&scope=applications.commands")
+          :label "Add me to your server"
+          :emoji {:name "📝"})
+         (cmp/link-button
+          (str "https://top.gg/bot/" app-id)
+          :label "Vote for me on top.gg"
+          :emoji {:name "✅"})
+         (cmp/link-button
+          "https://github.com/JohnnyJayJay/instant-poll"
+          :label "View source code"
+          :emoji {:name "🛠️"}))]}
       rsp/channel-message
       rsp/ephemeral))
 
