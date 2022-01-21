@@ -19,8 +19,8 @@
    (for [option-group (partition-all 5 options)]
      (apply
       cmp/action-row
-      (for [[key _] option-group]
-        (cmp/button :primary (str "vote" action-separator key) :label key))))
+      (for [{:keys [key emoji]} option-group]
+        (cmp/button :primary (str "vote" action-separator key) :label key :emoji emoji))))
    [(apply
      cmp/action-row
      (cond-> []
