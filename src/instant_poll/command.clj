@@ -108,7 +108,7 @@
                        "- 'No emoji ; No emoji is required to provide a longer description.'\n"
                        "- '🙂 No extra description'")}
           {:name "open"
-           :value "When set to `true`, everybody will be able to see who voted for which options. By default, this is `false`."}
+           :value "When set to `True`, everybody will be able to see who voted for which options. By default, this is `False`."}
           {:name "multi-vote"
            :value "Whether voters can pick multiple options. `False` by default."}
           {:name "close-in"
