@@ -32,15 +32,6 @@
     (cmd/sub-command "help" "Display help for this bot")
     (cmd/sub-command "info" "Display information about this bot")]))
 
-(def poll-option-help
-  (str "A poll option has the format `<emoji>? <key>? ; <description>`. The emoji and the key will be displayed on the vote button."
-       " The key will also be used to identify the option in the vote distribution diagram. Some example options:\n\n"
-       "- 'Yes'\n"
-       "- '🤔 Maybe ; I'm still unsure and will decide later'\n"
-       "- '<:simon_peek:863544593483825182> How about that? ; Custom emojis are allowed too.'\n"
-       "- 'No emoji ; No emoji is required to provide a longer description.'\n"
-       "- '🙂 No extra description'"))
-
 (defn parse-option [opt-string]
   (let [[key-part desc-part] (string/split opt-string #"\s*;\s*" 2)
         [emoji-prefix key] (string/split key-part #"\s+" 2)
@@ -108,7 +99,14 @@
          [{:name "question"
            :value "The question of your poll. "}
           {:name "1..15"
-           :value (str "The options that voters can pick.\n" poll-option-help)}
+           :value (str "The options that voters can pick.\n"
+                       "A poll option has the format `<emoji>? <key>? ; <description>`. The emoji and the key will be displayed on the vote button."
+                       " The key will also be used to identify the option in the vote distribution diagram. Some example options:\n\n"
+                       "- 'Yes'\n"
+                       "- '🤔 Maybe ; I'm still unsure and will decide later'\n"
+                       "- '<:simon_peek:863544593483825182> How about that? ; Custom emojis are allowed too.'\n"
+                       "- 'No emoji ; No emoji is required to provide a longer description.'\n"
+                       "- '🙂 No extra description'")}
           {:name "open"
            :value "When set to `true`, everybody will be able to see who voted for which options. By default, this is `false`."}
           {:name "multi-vote"
