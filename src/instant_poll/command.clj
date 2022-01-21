@@ -64,40 +64,35 @@
      :description desc
      :emoji emoji}))
 
-(defn match-poll-options [option-map]
-  (map (partial re-matches poll-option-pattern) (keep (comp option-map keyword) poll-option-names)))
-
-(defn option-matches->poll-options [option-matches]
-  (map-indexed (fn [i [_ _ key text]] [(or key (str (inc i))) text]) option-matches))
-
 (defhandler create-command
   ["create"]
   {:keys [application-id token guild-id id] {{user-id :id} :user} :member :as _interaction}
   {:keys [question open multi-vote close-in] :or {open false multi-vote false close-in -1} :as option-map}
-  (let [option-matches (match-poll-options option-map)]
-    (cond
-      (nil? guild-id) (-> {:content "I'm afraid there are not a lot of people you can ask questions here :smile:"} rsp/channel-message rsp/ephemeral)
-      (> (count question) 500) (-> {:content (str "Couldn't create poll.\n\n" question-help)} rsp/channel-message rsp/ephemeral)
-      (some nil? option-matches) (-> {:content (str "Couldn't create poll.\n\n" poll-option-help)} rsp/channel-message rsp/ephemeral)
-      :else
-      (let [poll-options (option-matches->poll-options option-matches)
-            poll (polls/create-poll!
-                  id
-                  {:question question
-                   :options poll-options
-                   :open open
-                   :multi-vote? multi-vote
-                   :application-id application-id
-                   :interaction-token token
-                   :creator-id user-id}
-                  close-in
-                  (fn [{:keys [application-id interaction-token channel-id message-id close-timestamp] :as poll}]
-                    (let [edits [:components [] :content (str (polls/render-poll poll (:bar-length config)) \newline (polls/close-notice poll false))]]
-                      (apply discord/edit-original-interaction-response! discord-conn application-id interaction-token edits)
-                      (apply discord/edit-message! discord-conn channel-id message-id edits))))]
-        (rsp/channel-message
-         {:content (str (polls/render-poll poll (:bar-length config)) \newline (polls/close-notice poll true))
-          :components (make-components poll)})))))
+  (cond
+    (nil? guild-id) (-> {:content "I'm afraid there are not a lot of people you can ask questions here :smile:"} rsp/channel-message rsp/ephemeral)
+    (> (->> option-map vals (map count) (reduce +)) 1500) (-> {:content (str "Couldn't create poll - Your poll is too big!")} rsp/channel-message rsp/ephemeral)
+    :else
+    (let [options (->> poll-option-names (keep (comp option-map keyword)) (map parse-option))
+          max-key-length (:max-key-length config)
+          custom-keys? (every? #(<= (:key %) max-key-length) options)
+          poll-options (->> options (map-indexed (partial apply-key-policy custom-keys?)) (map (juxt :key identity)) (into {}))
+          poll (polls/create-poll!
+                id
+                {:question question
+                 :options poll-options
+                 :open open
+                 :multi-vote? multi-vote
+                 :application-id application-id
+                 :interaction-token token
+                 :creator-id user-id}
+                close-in
+                (fn [{:keys [application-id interaction-token channel-id message-id] :as poll}]
+                  (let [edits [:components [] :content (str (polls/render-poll poll (:bar-length config)) \newline (polls/close-notice poll false))]]
+                    (apply discord/edit-original-interaction-response! discord-conn application-id interaction-token edits)
+                    (apply discord/edit-message! discord-conn channel-id message-id edits))))]
+      (rsp/channel-message
+       {:content (str (polls/render-poll poll (:bar-length config)) \newline (polls/close-notice poll true))
+        :components (make-components poll)}))))
 
 (defhandler help-command
   ["help"]
