@@ -11,7 +11,8 @@
                  [com.github.johnnyjayjay/ring-discord-auth "1.0.1"]
                  [mount "0.1.16"]
                  [org.suskalo/discljord "1.3.0"]
-                 [com.github.johnnyjayjay/slash "0.3.0-SNAPSHOT"]]
+                 [com.github.johnnyjayjay/slash "0.3.0-SNAPSHOT"]
+                 [com.vdurmont/emoji-java "5.1.1"]]
   :main instant-poll.handler
   :aot :all
   :global-vars {*warn-on-reflection* true}

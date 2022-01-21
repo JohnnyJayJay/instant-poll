@@ -40,7 +40,7 @@
   (reduce-kv
    (fn [acc _user-id opts]
      (reduce #(update %1 %2 inc) acc opts))
-   (zipmap (map first options) (repeat 0))
+   (zipmap (map :key options) (repeat 0))
    votes))
 
 (defn render-option-result [option bar-length width votes total-votes]
@@ -50,13 +50,17 @@
 (defn render-poll [{:keys [votes question options] :as _poll} bar-length]
   (let [vote-counts (count-votes options votes)
         total-votes (count votes)
-        width (->> options (map first) (map count) (reduce max))
-        option-list (string/join \newline (map (fn [[key text]] (str key ": " text)) options))
-        option-results (string/join \newline (map #(render-option-result % bar-length width (vote-counts %) total-votes) (map first options)))]
+        width (->> options (map :key) (map count) (reduce max))
+        option-list (string/join
+                     \newline
+                     (keep (fn [{:keys [key description]}]
+                             (and description (str key ": " description)))
+                           options))
+        option-results (string/join \newline (map #(render-option-result % bar-length width (vote-counts %) total-votes) (map :key options)))]
     (format
-     "%s%n%n%s%n```%n%s%n```(Total votes: %d)"
+     "%s%n%s%n```%n%s%n```(Total votes: %d)"
      question
-     option-list
+     (cond->> option-list (seq option-list) (str \newline))
      option-results
      total-votes)))
 
