@@ -103,6 +103,7 @@
          :description (str "Use `/poll create` to create a poll in a text channel.\n"
                            "Polls can be closed by the person who created the poll and by people who are allowed to delete messages.\n"
                            "Information on the different options:")
+         :color 0x059ABB
          :fields
          [{:name "question"
            :value "The question of your poll. "}
