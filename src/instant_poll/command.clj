@@ -1,6 +1,5 @@
 (ns instant-poll.command
-  (:require [clojure.spec.alpha :as spec]
-            [clojure.string :as string]
+  (:require [clojure.string :as string]
             [instant-poll.poll :as polls]
             [instant-poll.component :refer [make-components]]
             [discljord.messaging :as discord]
