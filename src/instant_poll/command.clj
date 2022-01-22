@@ -11,7 +11,7 @@
             [slash.command :refer [defhandler defpaths group]])
   (:import (com.vdurmont.emoji EmojiManager)))
 
-(def poll-option-names (map str (range 1 16)))
+(def poll-option-names (->> (range 15) (map #(+ % (int \A))) (map char) (mapv str)))
 
 (def poll-command
   (cmd/command
@@ -25,7 +25,7 @@
      (concat
       [(cmd/option "question" "The poll question" :string :required true)]
       (for [[i name] (map-indexed vector poll-option-names)]
-        (cmd/option name (str "Option " name) :string :required (< i 2)))
+        (cmd/option (str (inc i)) (str "Option " name) :string :required (< i 2)))
       [(cmd/option "open" "Whether the poll should be open/not anonymous (default: false)" :boolean)
        (cmd/option "multi-vote" "Whether users have multiple votes (default: false)" :boolean)
        (cmd/option "close-in" "A duration (in seconds) after which voting closes (default: no expiration)" :integer)]))
@@ -63,7 +63,7 @@
     (nil? guild-id) (-> {:content "I'm afraid there are not a lot of people you can ask questions here :smile:"} rsp/channel-message rsp/ephemeral)
     (> (->> option-map vals (map count) (reduce +)) 1500) (-> {:content (str "Couldn't create poll - Your poll is too big!")} rsp/channel-message rsp/ephemeral)
     :else
-    (let [options (->> poll-option-names (keep (comp option-map keyword)) (map parse-option))
+    (let [options (->> option-map keys (filter (comp #(Character/isDigit ^char %) first name)) (map option-map) (map parse-option))
           max-key-length (:max-key-length config)
           custom-keys? (every? #(<= (count (:custom-key %)) max-key-length) options)
           poll-options (map-indexed (partial apply-key-policy custom-keys?) options)
