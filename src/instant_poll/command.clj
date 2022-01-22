@@ -28,7 +28,8 @@
         (cmd/option (str (inc i)) (str "Option " name) :string :required (< i 2)))
       [(cmd/option "open" "Whether the poll should be open/not anonymous (default: false)" :boolean)
        (cmd/option "multi-vote" "Whether users have multiple votes (default: false)" :boolean)
-       (cmd/option "close-in" "A duration (in seconds) after which voting closes (default: no expiration)" :integer)]))
+       (cmd/option "close-in" "A duration (in seconds) after which voting closes (default: no expiration)" :integer)
+       (cmd/option "default-keys" "Whether to use the default option keys (A-O). This can improve formatting on mobile." :boolean)]))
     (cmd/sub-command "help" "Display help for this bot")
     (cmd/sub-command "info" "Display information about this bot")]))
 
@@ -58,7 +59,7 @@
 (defhandler create-command
   ["create"]
   {:keys [application-id token guild-id id] {{user-id :id} :user} :member :as _interaction}
-  {:keys [question open multi-vote close-in] :or {open false multi-vote false close-in -1} :as option-map}
+  {:keys [question open multi-vote close-in default-keys] :or {open false multi-vote false close-in -1 default-keys false} :as option-map}
   (cond
     (nil? guild-id) (-> {:content "I'm afraid there are not a lot of people you can ask questions here :smile:"} rsp/channel-message rsp/ephemeral)
     (> (->> option-map vals (filter string?) (map count) (reduce +)) 1500) (-> {:content (str "Your poll is too big! :books:")} rsp/channel-message rsp/ephemeral)
@@ -66,7 +67,7 @@
     :else
     (let [options (->> option-map keys (filter (comp #(Character/isDigit ^char %) first name)) (map option-map) (map parse-option))
           max-key-length (:max-key-length config)
-          custom-keys? (every? #(<= (count (:custom-key %)) max-key-length) options)
+          custom-keys? (and (not default-keys) (every? #(<= (count (:custom-key %)) max-key-length) options))
           poll-options (map-indexed (partial apply-key-policy custom-keys?) options)]
       (if (< (count (set (map :key poll-options))) (count poll-options))
         (-> {:content "One of your options has the same key as another! They must all have unique keys. :key:"} rsp/channel-message rsp/ephemeral)
