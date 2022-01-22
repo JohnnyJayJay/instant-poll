@@ -61,7 +61,7 @@
   {:keys [question open multi-vote close-in] :or {open false multi-vote false close-in -1} :as option-map}
   (cond
     (nil? guild-id) (-> {:content "I'm afraid there are not a lot of people you can ask questions here :smile:"} rsp/channel-message rsp/ephemeral)
-    (> (->> option-map vals (map count) (reduce +)) 1500) (-> {:content (str "Couldn't create poll - Your poll is too big!")} rsp/channel-message rsp/ephemeral)
+    (> (->> option-map vals (filter string?) (map count) (reduce +)) 1500) (-> {:content (str "Couldn't create poll - Your poll is too big!")} rsp/channel-message rsp/ephemeral)
     :else
     (let [options (->> option-map keys (filter (comp #(Character/isDigit ^char %) first name)) (map option-map) (map parse-option))
           max-key-length (:max-key-length config)

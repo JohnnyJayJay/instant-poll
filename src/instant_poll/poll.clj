@@ -45,9 +45,9 @@
 
 (defn render-option-result [option bar-length width votes total-votes]
   (let [part (if (= total-votes 0) 0 (/ votes total-votes))]
-    (format "%s %s (%.1f%%)" (format (str "%-" width \s) option) (bar/render bar-length  part) (double (* 100 part)))))
+    (format "%s %s %.1f%%" (format (str "%-" width \s) option) (bar/render bar-length  part) (double (* 100 part)))))
 
-(defn render-poll [{:keys [votes question options] :as _poll} bar-length]
+(defn render-poll [{:keys [votes question options multi-vote?] :as _poll} bar-length]
   (let [vote-counts (count-votes options votes)
         total-votes (count votes)
         width (->> options (map :key) (map count) (reduce max))
@@ -58,10 +58,11 @@
                            options))
         option-results (string/join \newline (map #(render-option-result % bar-length width (vote-counts %) total-votes) (map :key options)))]
     (format
-     "%s%n%s%n```%n%s%n```(Total votes: %d)"
+     "%s%n%s%n```%n%s%n```%s%nNumber of participants: %d"
      question
      (cond->> option-list (seq option-list) (str \newline))
      option-results
+     (str "You can pick " (if multi-vote? "**multiple** options." "**one** option."))
      total-votes)))
 
 (defn close-notice [{:keys [close-timestamp] :as _poll} open?]
