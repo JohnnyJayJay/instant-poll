@@ -9,7 +9,7 @@
   (d/transact-kv db [[:put "polls" (:id poll) poll]]))
 
 (defn find-poll [poll-id]
-  (d/get-value db poll-id))
+  (d/get-value db "polls" poll-id))
 
 (defn close-poll! [poll-id]
   (doto (assoc (find-poll poll-id) :closed true) put-poll!))
