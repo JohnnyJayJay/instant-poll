@@ -45,7 +45,7 @@
 
 (defn render-option-result [option bar-length width votes total-votes]
   (let [part (if (= total-votes 0) 0 (/ votes total-votes))]
-    (format "%s %s (%.1f%%)" (format (str "%-" width \s) option) (bar/render bar-length  part) (double (* 100 part)))))
+    (format "%s %s %.1f%%" (format (str "%-" width \s) option) (bar/render bar-length  part) (double (* 100 part)))))
 
 (defn render-poll [{:keys [votes question options multi-vote?] :as _poll} bar-length]
   (let [vote-counts (count-votes options votes)
