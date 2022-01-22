@@ -3,4 +3,6 @@
  ; The setting below configures how long the bars of the poll results are
  :bar-length 40
  ; Max length of custom option keys
- :max-key-length 20}
+ :max-key-length 20
+ ; Path to your database file
+ :db "./data"}

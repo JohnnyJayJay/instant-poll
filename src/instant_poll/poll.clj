@@ -1,22 +1,23 @@
 (ns instant-poll.poll
   (:require [clojure.string :as string]
             [instant-poll.bar :as bar]
-            [instant-poll.state :refer [scheduler polls]])
+            [instant-poll.state :refer [scheduler db]]
+            [datalevin.core :as d])
   (:import (java.util.concurrent TimeUnit)))
 
+(defn put-poll! [poll]
+  (d/transact-kv db [[:put "polls" (:id poll) poll]]))
+
 (defn find-poll [poll-id]
-  (@polls poll-id))
+  (d/get-value db "polls" poll-id))
 
 (defn close-poll! [poll-id]
-  (-> polls
-      (swap-vals! dissoc poll-id)
-      first
-      (get poll-id)))
+  (doto (assoc (find-poll poll-id) :closed true) put-poll!))
 
 (defn create-poll! [id poll close-in close-action]
   (let [poll (cond-> (assoc poll :votes {} :id id)
                (pos? close-in) (assoc :close-timestamp (+' (quot (System/currentTimeMillis) 1000) close-in)))]
-    (swap! polls assoc id poll)
+    (put-poll! poll)
     (when (pos? close-in)
       (.schedule scheduler ^Runnable (fn [] (close-action (close-poll! id))) ^long close-in ^TimeUnit TimeUnit/SECONDS))
     poll))
@@ -34,7 +35,7 @@
       (empty? (get-in poll [:votes user])) (update :votes dissoc user))))
 
 (defn toggle-vote! [poll-id user option]
-  (get (swap! polls update poll-id toggle-vote user option) poll-id))
+  (doto (toggle-vote (find-poll poll-id) user option) put-poll!))
 
 (defn count-votes [options votes]
   (reduce-kv

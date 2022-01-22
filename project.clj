@@ -12,10 +12,12 @@
                  [mount "0.1.16"]
                  [org.suskalo/discljord "1.3.0"]
                  [com.github.johnnyjayjay/slash "0.3.0-SNAPSHOT"]
-                 [com.vdurmont/emoji-java "5.1.1"]]
+                 [com.vdurmont/emoji-java "5.1.1"]
+                 [datalevin "0.5.27"]]
   :main instant-poll.handler
   :aot :all
   :global-vars {*warn-on-reflection* true}
+  :jvm-opts ["--add-opens=java.base/java.nio=ALL-UNNAMED" "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED"]
   :profiles
   {:dev {:dependencies [[javax.servlet/servlet-api "2.5"]
                         [ring/ring-mock "0.3.2"]]}})
