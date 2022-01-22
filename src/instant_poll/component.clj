@@ -1,13 +1,12 @@
 (ns instant-poll.component
   (:require [clojure.string :as string]
             [instant-poll.poll :as polls]
-            [instant-poll.state :refer [config polls db]]
+            [instant-poll.state :refer [config]]
             [discljord.util :refer [parse-if-str]]
             [discljord.formatting :as discord-fmt]
             [discljord.permissions :as discord-perms]
             [slash.component.structure :as cmp]
-            [slash.response :as rsp]
-            [datalevin.core :as d]))
+            [slash.response :as rsp]))
 
 (def action-separator "_")
 (def action-separator-pattern (re-pattern action-separator))
@@ -33,7 +32,7 @@
 (defmethod poll-action "vote"
   [_ {{{user-id :id} :user} :member {message-id :id :keys [channel-id]} :message :as _interaction} {:keys [id] :as _poll} [option]]
   (let [updated-poll (polls/toggle-vote! id user-id option)]
-    (put-poll (assoc updated-poll :channel-id channel-id :message-id message-id))
+    (polls/put-poll! (assoc updated-poll :channel-id channel-id :message-id message-id))
     (rsp/update-message {:content (str (polls/render-poll updated-poll (:bar-length config)) \newline (polls/close-notice updated-poll true))})))
 
 (defmethod poll-action "show-votes"
