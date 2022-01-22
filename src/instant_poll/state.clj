@@ -10,9 +10,6 @@
   :start (Executors/newSingleThreadScheduledExecutor)
   :stop (.shutdown ^ScheduledExecutorService scheduler))
 
-(defstate polls
-  :start (atom {}))
-
 (defstate config
   :start (edn/read-string (slurp (or (System/getenv "CONFIG") "config/config.edn"))))
 
