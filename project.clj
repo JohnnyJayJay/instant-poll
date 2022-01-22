@@ -17,6 +17,7 @@
   :main instant-poll.handler
   :aot :all
   :global-vars {*warn-on-reflection* true}
+  :jvm-opts ["--add-opens=java.base/java.nio=ALL-UNNAMED" "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED"]
   :profiles
   {:dev {:dependencies [[javax.servlet/servlet-api "2.5"]
                         [ring/ring-mock "0.3.2"]]}})
