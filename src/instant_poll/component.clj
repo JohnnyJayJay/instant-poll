@@ -14,7 +14,7 @@
 (defn parse-custom-id [custom-id]
   (string/split custom-id action-separator-pattern))
 
-(defn make-components [{:keys [options open] :as _poll}]
+(defn make-components [{:keys [options open?] :as _poll}]
   (concat
    (for [option-group (partition-all 5 options)]
      (apply
@@ -24,7 +24,7 @@
    [(apply
      cmp/action-row
      (cond-> []
-       open (conj (cmp/button :secondary "show-votes" :label "Show Votes" :emoji {:name "🔎"}))
+       open? (conj (cmp/button :secondary "show-votes" :label "Show Votes" :emoji {:name "🔎"}))
        true (conj (cmp/button :danger "close" :label "Close Poll" :emoji {:name "🔒"}))))]))
 
 (defmulti poll-action (fn [action _interaction _poll _options] action))

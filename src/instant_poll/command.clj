@@ -71,7 +71,7 @@
                 id
                 {:question question
                  :options poll-options
-                 :open open
+                 :open? open
                  :multi-vote? multi-vote
                  :application-id application-id
                  :interaction-token token
