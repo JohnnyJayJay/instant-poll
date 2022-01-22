@@ -10,7 +10,7 @@
                  [bananaoomarang/ring-debug-logging "1.1.0"]
                  [com.github.johnnyjayjay/ring-discord-auth "1.0.1"]
                  [mount "0.1.16"]
-                 [org.suskalo/discljord "1.3.1"]
+                 [com.github.discljord/discljord "1.3.1"]
                  [com.github.johnnyjayjay/slash "0.3.0-SNAPSHOT"]
                  [com.vdurmont/emoji-java "5.1.1"]
                  [datalevin "0.5.27"]]
