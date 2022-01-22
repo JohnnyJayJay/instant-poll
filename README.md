@@ -10,6 +10,7 @@ instant-poll is a [Discord](https://discord.com) application that allows you to 
 - Cutting-edge Discord features (slash commands, message buttons)
 - Timed Polls
 - Polls with multiple votes per user
+- Open (non-anonymous) polls
 - Gateway-free (you don't need to invite the bot to use it)
 
 ## Add it to your server
@@ -22,12 +23,13 @@ You can verify this by typing `/poll info`.
 ## Usage
 Use `/poll create` to create a poll. 
 
-| Parameter    | Description                                   | Constraints                                                               |
-|--------------|-----------------------------------------------|---------------------------------------------------------------------------|
-| `question`   | The poll question                             | < 500 characters in length                                                |
-| `1`..`5`     | The options voters can pick from              | Format: `(<key>: )?<text>` (key: 1-15 characters, text: 1-200 characters) |
-| `multi-vote` | Whether every voter can pick multiple options | True or False                                                             |
-| `close-in`   | Number of seconds after which poll is closed  | positive number, <= 0 will be ignored                                     |
+| Parameter    | Description                                              | Constraints                               |
+|--------------|----------------------------------------------------------|-------------------------------------------|
+| `question`   | The poll question                                        | /                                         |
+| `1`..`15`    | The options voters can pick from                         | Format: `<emoji>? <key>? ; <description>` |
+| `open`       | Whether it will be visible who voted for which option(s) | True or False                             |
+| `multi-vote` | Whether every voter can pick multiple options            | True or False                             |
+| `close-in`   | Number of seconds after which poll is closed             | positive number, <= 0 will be ignored     |
 
 Polls can be closed by the poll creator and people who are allowed to delete messages.
 
@@ -82,6 +84,6 @@ Depending on when you registered the slash commands, you may have to wait up to 
 
 ## License
 
-Copyright © 2021 JohnnyJayJay
+Copyright © 2021-2022 JohnnyJayJay
 
 Licensed under the [MIT License](./LICENSE).
