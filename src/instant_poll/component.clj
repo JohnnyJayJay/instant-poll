@@ -66,7 +66,7 @@
        {:content (str (polls/render-poll poll (:bar-length config)) \newline
                       "Poll closed " (discord-fmt/timestamp (quot (System/currentTimeMillis) 1000) :relative-time)
                       " by " (discord-fmt/mention-user user-id) \.)
-        :components (cond-> [] open? (conj cmp/action-row show-votes-button))}))
+        :components (cond-> [] open? (conj (cmp/action-row show-votes-button)))}))
     (-> {:content "You do not have permission to close this poll."} rsp/channel-message rsp/ephemeral)))
 
 (defmethod poll-action :default
