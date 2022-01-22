@@ -25,7 +25,7 @@
      (concat
       [(cmd/option "question" "The poll question" :string :required true)]
       (for [[i name] (map-indexed vector poll-option-names)]
-        (cmd/option (str i) (str "Option " name) :string :required (< i 2)))
+        (cmd/option (str (inc i)) (str "Option " name) :string :required (< i 2)))
       [(cmd/option "open" "Whether the poll should be open/not anonymous (default: false)" :boolean)
        (cmd/option "multi-vote" "Whether users have multiple votes (default: false)" :boolean)
        (cmd/option "close-in" "A duration (in seconds) after which voting closes (default: no expiration)" :integer)]))
