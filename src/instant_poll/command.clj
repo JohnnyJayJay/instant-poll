@@ -71,23 +71,32 @@
           poll-options (map-indexed (partial apply-key-policy custom-keys?) options)]
       (if (< (count (set (map :key poll-options))) (count poll-options))
         (-> {:content "One of your options has the same key as another! They must all have unique keys. :key:"} rsp/channel-message rsp/ephemeral)
-        (let [poll (polls/create-poll!
-                  id
-                  {:question question
-                   :options poll-options
-                   :open? open
-                   :multi-vote? multi-vote
-                   :application-id application-id
-                   :interaction-token token
-                   :creator-id user-id}
-                  close-in
-                  (fn [{:keys [application-id interaction-token channel-id message-id] :as poll}]
-                    (let [edits [:components [] :content (str (polls/render-poll poll (:bar-length config)) \newline (polls/close-notice poll false))]]
-                      (apply discord/edit-original-interaction-response! discord-conn application-id interaction-token edits)
-                      (apply discord/edit-message! discord-conn channel-id message-id edits))))]
-        (rsp/channel-message
-         {:content (str (polls/render-poll poll (:bar-length config)) \newline (polls/close-notice poll true))
-          :components (make-components poll)}))))))
+        (if (and (>= close-in (* 15 60)) (= 50001 (:code @(discord/get-guild! discord-conn guild-id))))
+          (-> {:content (str "For automatic poll closing after more than **15 minutes**, I need additional authorisation."
+                             "\nThis is because Discord doesn't let me edit my messages after a longer period of time anymore if I am not directly on your server.")
+               :components [(cmp/action-row
+                             (cmp/link-button (str "https://discord.com/api/oauth2/authorize?client_id=" app-id "&scope=bot")
+                                              :label "Unlock auto-closing after 15 minutes"
+                                              :emoji {:name "🔓"}))]}
+              rsp/channel-message
+              rsp/ephemeral)
+          (let [poll (polls/create-poll!
+                      id
+                      {:question question
+                       :options poll-options
+                       :open? open
+                       :multi-vote? multi-vote
+                       :application-id application-id
+                       :interaction-token token
+                       :creator-id user-id}
+                      close-in
+                      (fn [{:keys [application-id interaction-token channel-id message-id] :as poll}]
+                        (let [edits [:components [] :content (str (polls/render-poll poll (:bar-length config)) \newline (polls/close-notice poll false))]]
+                          (apply discord/edit-original-interaction-response! discord-conn application-id interaction-token edits)
+                          (apply discord/edit-message! discord-conn channel-id message-id edits))))]
+            (rsp/channel-message
+             {:content (str (polls/render-poll poll (:bar-length config)) \newline (polls/close-notice poll true))
+              :components (make-components poll)})))))))
 
 (defhandler help-command
   ["help"]
@@ -111,6 +120,8 @@
                        "- '<:simon_peek:863544593483825182> How about that? ; Custom emojis are allowed too.'\n"
                        "- 'No emoji ; No emoji is required to provide a longer description.'\n"
                        "- '🙂 No extra description'")}
+          {:name "default-keys"
+           :value "Setting this to `True` may improve formatting on mobile devices. In this mode, every option is given a one-letter default key (A-O)."}
           {:name "open"
            :value "When set to `True`, everybody will be able to see who voted for which options. By default, this is `False`."}
           {:name "multi-vote"
