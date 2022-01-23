@@ -118,6 +118,8 @@
                        "- '<:simon_peek:863544593483825182> How about that? ; Custom emojis are allowed too.'\n"
                        "- 'No emoji ; No emoji is required to provide a longer description.'\n"
                        "- '🙂 No extra description'")}
+          {:name "default-keys"
+           :value "Setting this to `True` may improve formatting on mobile devices. In this mode, every option is given a one-letter default key (A-O)."}
           {:name "open"
            :value "When set to `True`, everybody will be able to see who voted for which options. By default, this is `False`."}
           {:name "multi-vote"
