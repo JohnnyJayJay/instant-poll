@@ -26,7 +26,11 @@
       [(cmd/option "question" "The poll question" :string :required true)]
       (for [[i name] (map-indexed vector poll-option-names)]
         (cmd/option (str (inc i)) (str "Option " name) :string :required (< i 2)))
-      [(cmd/option "open" "Whether the poll should be open/not anonymous (default: false)" :boolean)
+      [(cmd/option "show-votes" "Whether it should be visible who votes for which option (default: votes are not visible)" :string
+                   :choices
+                   [(cmd/choice "Votes are not visible" "never")
+                    (cmd/choice "Votes are always visible" "always")
+                    (cmd/choice "Votes are only visible after closing" "after-closing")])
        (cmd/option "multi-vote" "Whether users have multiple votes (default: false)" :boolean)
        (cmd/option "close-in" "A duration (in seconds) after which voting closes (default: no expiration)" :integer)
        (cmd/option "default-keys" "Whether to use the default option keys (A-O). This can improve formatting on mobile." :boolean)]))
@@ -59,7 +63,7 @@
 (defhandler create-command
   ["create"]
   {:keys [application-id token guild-id id] {{user-id :id} :user} :member :as _interaction}
-  {:keys [question open multi-vote close-in default-keys] :or {open false multi-vote false close-in -1 default-keys false} :as option-map}
+  {:keys [question show-votes multi-vote close-in default-keys] :or {show-votes "never" multi-vote false close-in -1 default-keys false} :as option-map}
   (cond
     (nil? guild-id) (-> {:content "I'm afraid there are not a lot of people you can ask questions here :smile:"} rsp/channel-message rsp/ephemeral)
     (> (->> option-map vals (filter string?) (map count) (reduce +)) 1500) (-> {:content (str "Your poll is too big! :books:")} rsp/channel-message rsp/ephemeral)
@@ -84,7 +88,7 @@
                       id
                       {:question question
                        :options poll-options
-                       :open? open
+                       :show-votes (keyword show-votes)
                        :multi-vote? multi-vote
                        :application-id application-id
                        :interaction-token token
@@ -118,12 +122,14 @@
                        "- 'Yes'\n"
                        "- '🤔 Maybe ; I'm still unsure and will decide later'\n"
                        "- '<:simon_peek:863544593483825182> How about that? ; Custom emojis are allowed too.'\n"
-                       "- 'No emoji ; No emoji is required to provide a longer description.'\n"
+                       "- 'No emoji ; An emoji is not required to provide a longer description.'\n"
                        "- '🙂 No extra description'")}
           {:name "default-keys"
            :value "Setting this to `True` may improve formatting on mobile devices. In this mode, every option is given a one-letter default key (A-O)."}
-          {:name "open"
-           :value "When set to `True`, everybody will be able to see who voted for which options. By default, this is `False`."}
+          {:name "show-votes"
+           :value (str "Sets the 'anonymity policy' for a poll. It decides whether anyone can see who voted for which option(s).\n"
+                       "There are 3 choices: never show votes (anonymous), always show votes (open) and show votes only after the poll is closed (half-open).\n"
+                       "By default, polls are anonymous.")}
           {:name "multi-vote"
            :value "Whether voters can pick multiple options. `False` by default."}
           {:name "close-in"
@@ -155,6 +161,6 @@
 
 (defpaths handle-command
   (group ["poll"]
-    create-command
-    help-command
-    info-command))
+    #'create-command
+    #'help-command
+    #'info-command))

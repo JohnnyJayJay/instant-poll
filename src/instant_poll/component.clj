@@ -20,7 +20,7 @@
 (def close-poll-button
   (cmp/button :danger "close" :label "Close Poll" :emoji {:name "🔒"}))
 
-(defn make-components [{:keys [options open?] :as _poll}]
+(defn make-components [{:keys [options show-votes] :as _poll}]
   (concat
    (for [option-group (partition-all 5 options)]
      (apply
@@ -30,7 +30,7 @@
    [(apply
      cmp/action-row
      (cond-> []
-       open? (conj show-votes-button)
+       (= show-votes :always) (conj show-votes-button)
        true (conj close-poll-button)))]))
 
 (defmulti poll-action (fn [action _interaction _poll _options] action))
@@ -41,16 +41,23 @@
     (polls/put-poll! (assoc updated-poll :channel-id channel-id :message-id message-id))
     (rsp/update-message {:content (str (polls/render-poll updated-poll (:bar-length config)) \newline (polls/close-notice updated-poll true))})))
 
+(defn group-by-votes [votes]
+  (reduce-kv
+   (fn [vote-table user user-votes]
+     (reduce #(update %1 %2 (fnil conj []) user) vote-table user-votes))
+   {}
+   votes))
+
 (defmethod poll-action "show-votes"
   [_ {} {:keys [votes] :as _poll} _]
   (-> {:content
        (let [msg (str
                   "**Here are the individual votes for this poll:**\n"
                   (string/join
-                   "; "
-                   (map (fn [[user-id options]]
-                          (str (discord-fmt/mention-user user-id) ": " (discord-fmt/code (string/join ", " options))))
-                        votes)))]
+                   "\n\n"
+                   (map (fn [[option users]]
+                          (str "`" option "`:\n" (string/join ", " (map discord-fmt/mention-user users))))
+                        (group-by-votes votes))))]
          (if (> (count msg) 2000)
            "Sorry, I can't display the votes, there are too many."
            msg))
@@ -59,14 +66,14 @@
       rsp/ephemeral))
 
 (defmethod poll-action "close"
-  [_ {{{user-id :id} :user :keys [permissions]} :member :as _interaction} {:keys [id creator-id open?] :as _poll} _]
+  [_ {{{user-id :id} :user :keys [permissions]} :member :as _interaction} {:keys [id creator-id show-votes] :as _poll} _]
   (if (or (= user-id creator-id) (discord-perms/has-permission-flag? :manage-messages (parse-if-str permissions)))
     (let [poll (polls/close-poll! id)]
       (rsp/update-message
        {:content (str (polls/render-poll poll (:bar-length config)) \newline
                       "Poll closed " (discord-fmt/timestamp (quot (System/currentTimeMillis) 1000) :relative-time)
                       " by " (discord-fmt/mention-user user-id) \.)
-        :components (cond-> [] open? (conj (cmp/action-row show-votes-button)))}))
+        :components (cond-> [] (#{:always :after-closing} show-votes) (conj (cmp/action-row show-votes-button)))}))
     (-> {:content "You do not have permission to close this poll."} rsp/channel-message rsp/ephemeral)))
 
 (defmethod poll-action :default

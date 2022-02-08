@@ -1,4 +1,9 @@
-FROM johnnyjayjay/leiningen:openjdk11 AS build
+FROM johnnyjayjay/leiningen:openjdk11 AS deps
+WORKDIR /usr/src/instant-poll
+COPY project.clj project.clj
+RUN lein deps
+
+FROM deps AS build
 WORKDIR /usr/src/instant-poll
 COPY . .
 RUN lein uberjar
