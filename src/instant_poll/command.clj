@@ -65,7 +65,7 @@
     (> (->> option-map vals (filter string?) (map count) (reduce +)) 1500) (-> {:content (str "Your poll is too big! :books:")} rsp/channel-message rsp/ephemeral)
 
     :else
-    (let [options (->> option-map keys (filter (comp #(Character/isDigit ^char %) first)) (map option-map) (map parse-option))
+    (let [options (->> option-map keys (filter (comp #(Character/isDigit ^char %) first name)) (map option-map) (map parse-option))
           max-key-length (:max-key-length config)
           custom-keys? (and (not default-keys) (every? #(<= (count (:custom-key %)) max-key-length) options))
           poll-options (map-indexed (partial apply-key-policy custom-keys?) options)]
@@ -155,6 +155,6 @@
 
 (defpaths handle-command
   (group ["poll"]
-    create-command
-    help-command
-    info-command))
+    #'create-command
+    #'help-command
+    #'info-command))
