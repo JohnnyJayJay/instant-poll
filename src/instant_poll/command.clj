@@ -155,6 +155,6 @@
 
 (defpaths handle-command
   (group ["poll"]
-    create-command
-    help-command
-    info-command))
+    #'create-command
+    #'help-command
+    #'info-command))
