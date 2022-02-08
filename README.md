@@ -27,7 +27,7 @@ Use `/poll create` to create a poll.
 |--------------|----------------------------------------------------------|-------------------------------------------|
 | `question`   | The poll question                                        | /                                         |
 | `1`..`15`    | The options voters can pick from                         | Format: `<emoji>? <key>? ; <description>` |
-| `open`       | Whether it will be visible who voted for which option(s) | True or False                             |
+| `show-votes` | Whether it will be visible who voted for which option(s) | always, never or after closing            |
 | `multi-vote` | Whether every voter can pick multiple options            | True or False                             |
 | `close-in`   | Number of seconds after which poll is closed             | positive number, <= 0 will be ignored     |
 
