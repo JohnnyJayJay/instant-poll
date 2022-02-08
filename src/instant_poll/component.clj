@@ -41,16 +41,23 @@
     (polls/put-poll! (assoc updated-poll :channel-id channel-id :message-id message-id))
     (rsp/update-message {:content (str (polls/render-poll updated-poll (:bar-length config)) \newline (polls/close-notice updated-poll true))})))
 
+(defn group-by-votes [votes]
+  (reduce-kv
+   (fn [vote-table user user-votes]
+     (reduce #(update %1 %2 (fnil conj []) user) vote-table user-votes))
+   {}
+   votes))
+
 (defmethod poll-action "show-votes"
   [_ {} {:keys [votes] :as _poll} _]
   (-> {:content
        (let [msg (str
                   "**Here are the individual votes for this poll:**\n"
                   (string/join
-                   "; "
-                   (map (fn [[user-id options]]
-                          (str (discord-fmt/mention-user user-id) ": " (discord-fmt/code (string/join ", " options))))
-                        votes)))]
+                   "\n\n"
+                   (map (fn [[option users]]
+                          (str "`" option "`:\n" (string/join "," (map discord-fmt/mention-user users))))
+                        (group-by-votes votes))))]
          (if (> (count msg) 2000)
            "Sorry, I can't display the votes, there are too many."
            msg))
