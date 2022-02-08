@@ -56,7 +56,7 @@
                   (string/join
                    "\n\n"
                    (map (fn [[option users]]
-                          (str "`" option "`:\n" (string/join "," (map discord-fmt/mention-user users))))
+                          (str "`" option "`:\n" (string/join ", " (map discord-fmt/mention-user users))))
                         (group-by-votes votes))))]
          (if (> (count msg) 2000)
            "Sorry, I can't display the votes, there are too many."
