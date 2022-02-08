@@ -26,7 +26,11 @@
       [(cmd/option "question" "The poll question" :string :required true)]
       (for [[i name] (map-indexed vector poll-option-names)]
         (cmd/option (str (inc i)) (str "Option " name) :string :required (< i 2)))
-      [(cmd/option "open" "Whether the poll should be open/not anonymous (default: false)" :boolean)
+      [(cmd/option "open" "Whether it should be visible who votes for which option (default: votes are not visible)" :string
+                   :choices
+                   [(cmd/choice "Votes are not visible" "anon")
+                    (cmd/choice "Votes are always visible" "open")
+                    (cmd/choice "Votes are only visible after closing" "half")])
        (cmd/option "multi-vote" "Whether users have multiple votes (default: false)" :boolean)
        (cmd/option "close-in" "A duration (in seconds) after which voting closes (default: no expiration)" :integer)
        (cmd/option "default-keys" "Whether to use the default option keys (A-O). This can improve formatting on mobile." :boolean)]))
