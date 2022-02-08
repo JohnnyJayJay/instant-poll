@@ -4,10 +4,8 @@
   :min-lein-version "2.0.0"
   :dependencies [[org.clojure/clojure "1.10.0"]
                  [http-kit "2.5.3"]
-                 [ring/ring-devel "1.9.3"]
                  [ring/ring-core "1.9.3"]
                  [ring/ring-json "0.5.1"]
-                 [bananaoomarang/ring-debug-logging "1.1.0"]
                  [com.github.johnnyjayjay/ring-discord-auth "1.0.1"]
                  [mount "0.1.16"]
                  [com.github.discljord/discljord "1.3.1"]
