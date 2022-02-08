@@ -126,8 +126,10 @@
                        "- '🙂 No extra description'")}
           {:name "default-keys"
            :value "Setting this to `True` may improve formatting on mobile devices. In this mode, every option is given a one-letter default key (A-O)."}
-          {:name "open"
-           :value "When set to `True`, everybody will be able to see who voted for which options. By default, this is `False`."}
+          {:name "show-votes"
+           :value (str "Sets the 'anonymity policy' for a poll. It decides whether anyone can see who voted for which option(s).\n"
+                       "There are 3 choices: never show votes (anonymous), always show votes (open) and show votes only after the poll is closed (half-open).\n"
+                       "By default, polls are anonymous.")}
           {:name "multi-vote"
            :value "Whether voters can pick multiple options. `False` by default."}
           {:name "close-in"
