@@ -122,7 +122,7 @@
                        "- 'Yes'\n"
                        "- '🤔 Maybe ; I'm still unsure and will decide later'\n"
                        "- '<:simon_peek:863544593483825182> How about that? ; Custom emojis are allowed too.'\n"
-                       "- 'No emoji ; No emoji is required to provide a longer description.'\n"
+                       "- 'No emoji ; An emoji is not required to provide a longer description.'\n"
                        "- '🙂 No extra description'")}
           {:name "default-keys"
            :value "Setting this to `True` may improve formatting on mobile devices. In this mode, every option is given a one-letter default key (A-O)."}
