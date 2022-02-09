@@ -78,7 +78,9 @@
 
 (defmethod poll-action :default
   [action _ _ _]
-  (-> {:content (str "Unknown action '" action "'. This is a bug. Please report this to the developers.")}))
+  (-> {:content (str "Unknown action '" action "'. This is a bug. Please report this to the developers.")}
+      rsp/channel-message
+      rsp/ephemeral))
 
 (defn handle-button-press
   [{{:keys [custom-id]} :data
