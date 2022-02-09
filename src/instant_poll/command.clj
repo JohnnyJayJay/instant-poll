@@ -82,8 +82,7 @@
                              (cmp/link-button (str "https://discord.com/api/oauth2/authorize?client_id=" app-id "&scope=bot")
                                               :label "Unlock auto-closing after 15 minutes"
                                               :emoji {:name "🔓"}))]}
-              rsp/channel-message
-              rsp/ephemeral)
+              rsp/channel-message)
           (let [poll (polls/create-poll!
                       id
                       {:question question
