@@ -67,25 +67,6 @@
 (defn exceeds-15-min? [close-in]
   (>= close-in (* 15 60)))
 
-(defn locked-response [app-id]
-  (-> {:content (str "For automatic poll closing after more than **15 minutes**, I need additional authorisation."
-                     "\nThis is because Discord doesn't let me edit my messages after a longer period of time anymore if I am not directly on your server.")
-       :components [(cmp/action-row
-                     (cmp/link-button
-                      (str "https://discord.com/api/oauth2/authorize?client_id=" app-id "&scope=bot")
-                      :label "Unlock auto-closing after 15 minutes"
-                      :emoji {:name "🔓"}))]}
-      rsp/channel-message))
-
-(def too-big-response
-  (-> {:content (str "Your poll is too big! :books:")} rsp/channel-message rsp/ephemeral))
-
-(def duplicate-key-response
-  (-> {:content "One of your options has the same key as another! They must all have unique keys. :key:"} rsp/channel-message rsp/ephemeral))
-
-(def dm-response
-  (-> {:content "I'm afraid there are not a lot of people you can ask questions here :smile:\n...Wait, how did you even get here?"} rsp/channel-message rsp/ephemeral))
-
 (defn command-options->poll-options [option-map max-key-length]
   (let [options (->> option-map keys (filter (comp #(Character/isDigit ^char %) first name)) (map option-map) (map parse-option))
         custom-keys? (and (not (:default-keys option-map)) (every? #(<= (count (:custom-key %)) max-key-length) options))
@@ -104,10 +85,26 @@
   {:keys [question show-votes multi-vote close-in allow-add-options] :or {show-votes "never" multi-vote false close-in -1} :as option-map}
   (let [poll-options (command-options->poll-options option-map (:max-key-length config))]
     (cond
-      (nil? guild-id) dm-response
-      (< (count (set (map :key poll-options))) (count poll-options)) duplicate-key-response
-      (> (estimate-size question poll-options (:bar-length config)) 2000) too-big-response
-      (and (exceeds-15-min? close-in) (not-on-guild? guild-id)) (locked-response app-id)
+      (nil? guild-id)
+      (-> {:content "I'm afraid there are not a lot of people you can ask questions here :smile:\n...Wait, how did you even get here?"}
+          rsp/channel-message
+          rsp/ephemeral)
+
+      (< (count (set (map :key poll-options))) (count poll-options))
+      (-> {:content "One of your options has the same key as another! They must all have unique keys. :key:"} rsp/channel-message rsp/ephemeral)
+
+      (> (estimate-size question poll-options (:bar-length config)) 2000)
+      (-> {:content (str "Your poll is too big! :books:")} rsp/channel-message rsp/ephemeral)
+
+      (and (exceeds-15-min? close-in) (not-on-guild? guild-id))
+      (-> {:content (str "For automatic poll closing after more than **15 minutes**, I need additional authorisation."
+                         "\nThis is because Discord doesn't let me edit my messages after a longer period of time anymore if I am not directly on your server.")
+           :components [(cmp/action-row
+                         (cmp/link-button
+                          (str "https://discord.com/api/oauth2/authorize?client_id=" app-id "&scope=bot")
+                          :label "Unlock auto-closing after 15 minutes"
+                          :emoji {:name "🔓"}))]}
+          rsp/channel-message)
 
       :else
       (let [poll (polls/create-poll!
