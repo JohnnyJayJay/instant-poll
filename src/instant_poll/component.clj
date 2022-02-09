@@ -71,6 +71,14 @@
       rsp/channel-message
       rsp/ephemeral))
 
+(defn estimate-size [question options bar-length]
+  (count (polls/render-poll
+          {:question question
+           :options options
+           :votes {"123" (set (map :key options))}
+           :multi-vote? true}
+          bar-length)))
+
 (defmethod poll-action "add-option"
   [_ {{{user-id :id} :user} :member :as _interaction} {:keys [creator-id options] :as _poll} _]
   (cond
