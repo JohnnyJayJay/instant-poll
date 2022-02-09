@@ -79,12 +79,35 @@
            :multi-vote? true}
           bar-length)))
 
+
+(defn keys-only? [poll]
+  (-> poll :options first :description nil?))
+
+(defn available-size [poll bar-length max-key-length]
+  (let [updated (update poll :options conj (if (keys-only? poll)
+                                       {:key ""}
+                                       {:key (apply str (repeat max-key-length \a)) :description ""}))]
+    (- 1920 (count (polls/render-poll updated bar-length)))))
+
 (defmethod poll-action "add-option"
-  [_ {{{user-id :id} :user} :member :as _interaction} {:keys [creator-id options] :as _poll} _]
+  [_ {{{user-id :id} :user} :member :as _interaction} {:keys [creator-id options] :as poll} _]
   (cond
     (not= user-id creator-id) (-> {:content "❌ Sorry, only the creator of this poll can add more options."} rsp/channel-message rsp/ephemeral)
     (> (count options) max-options) (-> {:content "❌ The maximum number of supported options has already been reached." rsp/channel-message rsp/ephemeral})
-    :else (rsp/modal "Add a poll option" "add-option-form" (cmp/action-row (cmp/text-input :short "new-option" "New option" :required true :placeholder "Key ; Description")))))
+    :else
+    (let [max-key-length (:max-key-length config)
+          available (available-size poll (:bar-length config) max-key-length)]
+      (if (<= available 0)
+        (-> {:content "Can't add another option, your poll is too big!"} rsp/channel-message rsp/ephemeral)
+        (apply
+         rsp/modal
+         "Add a poll option"
+         "add-option-form"
+         (cmp/action-row (cmp/text-input :short "option-emoji" "Option emoji" :placeholder "🙂" :required false))
+         (if (keys-only? poll)
+           [(cmp/action-row (cmp/text-input :short "option-key" "Option key" :required true :max-length (min available max-key-length)))]
+           [(cmp/action-row (cmp/text-input :short "option-key" "Option key" :required true :max-length max-key-length))
+            (cmp/action-row (cmp/text-input :paragraph "option-description" "Option description" :required false :max-length available))]))))))
 
 (defmethod poll-action "close"
   [_ {{{user-id :id} :user :keys [permissions]} :member :as _interaction} {:keys [id creator-id show-votes] :as _poll} _]

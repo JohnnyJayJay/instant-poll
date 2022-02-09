@@ -93,7 +93,7 @@
       (< (count (set (map :key poll-options))) (count poll-options))
       (-> {:content "One of your options has the same key as another! They must all have unique keys. :key:"} rsp/channel-message rsp/ephemeral)
 
-      (> (estimate-size question poll-options (:bar-length config)) 2000)
+      (> (estimate-size question poll-options (:bar-length config)) 1950)
       (-> {:content (str "Your poll is too big! :books:")} rsp/channel-message rsp/ephemeral)
 
       (and (exceeds-15-min? close-in) (not-on-guild? guild-id))
