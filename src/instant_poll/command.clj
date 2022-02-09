@@ -1,7 +1,7 @@
 (ns instant-poll.command
   (:require [clojure.string :as string]
             [instant-poll.poll :as polls]
-            [instant-poll.component :refer [make-components]]
+            [instant-poll.component :refer [make-components max-options]]
             [discljord.messaging :as discord]
             [discljord.formatting :as dfmt]
             [instant-poll.state :refer [discord-conn config app-id]]
@@ -11,7 +11,7 @@
             [slash.command :refer [defhandler defpaths group]])
   (:import (com.vdurmont.emoji EmojiManager)))
 
-(def poll-option-names (->> (range 15) (map #(+ % (int \A))) (map char) (mapv str)))
+(def poll-option-names (->> (range max-options) (map #(+ % (int \A))) (map char) (mapv str)))
 
 (def poll-command
   (cmd/command
@@ -32,6 +32,7 @@
                     (cmd/choice "Votes are always visible" "always")
                     (cmd/choice "Votes are only visible after closing" "after-closing")])
        (cmd/option "multi-vote" "Whether users have multiple votes (default: false)" :boolean)
+       (cmd/option "allow-add-options" "Whether it should be possible to add more options after creating the poll" :boolean)
        (cmd/option "close-in" "A duration (in seconds) after which voting closes (default: no expiration)" :integer)
        (cmd/option "default-keys" "Whether to use the default option keys (A-O). This can improve formatting on mobile." :boolean)]))
     (cmd/sub-command "help" "Display help for this bot")
@@ -63,7 +64,7 @@
 (defhandler create-command
   ["create"]
   {:keys [application-id token guild-id id] {{user-id :id} :user} :member :as _interaction}
-  {:keys [question show-votes multi-vote close-in default-keys] :or {show-votes "never" multi-vote false close-in -1 default-keys false} :as option-map}
+  {:keys [question show-votes multi-vote close-in default-keys allow-add-options] :or {show-votes "never" multi-vote false close-in -1 default-keys false} :as option-map}
   (cond
     (nil? guild-id) (-> {:content "I'm afraid there are not a lot of people you can ask questions here :smile:"} rsp/channel-message rsp/ephemeral)
     (> (->> option-map vals (filter string?) (map count) (reduce +)) 1500) (-> {:content (str "Your poll is too big! :books:")} rsp/channel-message rsp/ephemeral)
@@ -89,6 +90,7 @@
                        :options poll-options
                        :show-votes (keyword show-votes)
                        :multi-vote? multi-vote
+                       :allow-add-options? allow-add-options
                        :application-id application-id
                        :interaction-token token
                        :creator-id user-id}

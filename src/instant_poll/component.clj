@@ -8,6 +8,8 @@
             [slash.component.structure :as cmp]
             [slash.response :as rsp]))
 
+(def max-options 15)
+
 (def action-separator "_")
 (def action-separator-pattern (re-pattern action-separator))
 
@@ -17,10 +19,13 @@
 (def show-votes-button
   (cmp/button :secondary "show-votes" :label "Show Votes" :emoji {:name "🔎"}))
 
+(def add-option-button
+  (cmp/button :success "add-option" :label "Add Option" :emoji {:name "➕"}))
+
 (def close-poll-button
   (cmp/button :danger "close" :label "Close Poll" :emoji {:name "🔒"}))
 
-(defn make-components [{:keys [options show-votes] :as _poll}]
+(defn make-components [{:keys [options show-votes allow-add-options?] :as _poll}]
   (concat
    (for [option-group (partition-all 5 options)]
      (apply
@@ -31,6 +36,7 @@
      cmp/action-row
      (cond-> []
        (= show-votes :always) (conj show-votes-button)
+       allow-add-options? (conj add-option-button)
        true (conj close-poll-button)))]))
 
 (defmulti poll-action (fn [action _interaction _poll _options] action))
@@ -64,6 +70,13 @@
        :allowed_mentions {}}
       rsp/channel-message
       rsp/ephemeral))
+
+(defmethod poll-action "add-option"
+  [_ {{{user-id :id} :user} :member :as _interaction} {:keys [creator-id options] :as _poll} _]
+  (cond
+    (not= user-id creator-id) (-> {:content "❌ Sorry, only the creator of this poll can add more options."} rsp/channel-message rsp/ephemeral)
+    (> (count options) max-options) (-> {:content "❌ The maximum number of supported options has already been reached." rsp/channel-message rsp/ephemeral})
+    :else (rsp/modal "Add a poll option" "add-option-form" (cmp/action-row (cmp/text-input :short "new-option" "New option" :required true :placeholder "Key ; Description")))))
 
 (defmethod poll-action "close"
   [_ {{{user-id :id} :user :keys [permissions]} :member :as _interaction} {:keys [id creator-id show-votes] :as _poll} _]
