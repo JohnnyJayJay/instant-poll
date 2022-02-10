@@ -10,8 +10,6 @@
             [discljord.messaging :as discord])
   (:import (com.vdurmont.emoji EmojiManager)))
 
-(def currently-updated? (atom false))
-
 (def max-options 15)
 
 (def action-separator "_")
@@ -24,7 +22,10 @@
   (cmp/button :secondary "show-votes" :label "Show Votes" :emoji {:name "🔎"}))
 
 (def add-option-button
-  (cmp/button :success "add-option" :label "Add Option" :emoji {:name "➕"}))
+  (cmp/button :success "add-option" :label "Option" :emoji {:name "➕"}))
+
+(def remove-option-button
+  (cmp/button :danger "remove-option" :label "Option" :emoji {:name "➖"}))
 
 (def close-poll-button
   (cmp/button :danger "close" :label "Close Poll" :emoji {:name "🔒"}))
@@ -36,22 +37,23 @@
       cmp/action-row
       (for [{:keys [key emoji]} option-group]
         (cmp/button :primary (str "vote" action-separator key) :label key :emoji emoji))))
+   (when allow-add-options?
+     [(cmp/action-row
+       remove-option-button
+       add-option-button)])
    [(apply
      cmp/action-row
      (cond-> []
        (= show-votes :always) (conj show-votes-button)
-       allow-add-options? (conj add-option-button)
        true (conj close-poll-button)))]))
 
 (defmulti poll-action (fn [action _interaction _poll _options] action))
 
 (defmethod poll-action "vote"
   [_ {{{user-id :id} :user} :member :keys [token] :as _interaction} {:keys [id] :as poll} [option]]
-  (if @currently-updated?
-    (-> {:content "The poll was updated, please try again."} rsp/channel-message rsp/ephemeral)
-    (let [updated-poll (polls/toggle-vote (assoc poll :interaction-token token) user-id option)]
-      (polls/put-poll! updated-poll)
-      (rsp/update-message {:content (str (polls/render-poll updated-poll (:bar-length config)) \newline (polls/close-notice updated-poll true))}))))
+  (let [updated-poll (polls/toggle-vote (assoc poll :interaction-token token) user-id option)]
+    (polls/put-poll! updated-poll)
+    (rsp/update-message {:content (str (polls/render-poll updated-poll (:bar-length config)) \newline (polls/close-notice updated-poll true))})))
 
 (defn group-by-votes [votes]
   (reduce-kv
@@ -134,7 +136,6 @@
 
 (defn handle-add-option-form-submit
   [{{:keys [components custom-id]} :data}]
-  (reset! currently-updated? true)
   (let [option (->> components
                     (map :components)
                     (map first)
@@ -144,16 +145,13 @@
         {:keys [id interaction-token channel-id message-id] :as poll} (update (polls/find-poll custom-id) :options conj final-option)
         content (polls/render-poll poll (:bar-length config))
         components (make-components poll)]
-    (try
-      (if (and
-           (= 50017 (:code @(discord/edit-original-interaction-response! discord-conn app-id interaction-token :content content :components components)))
-           (= 50001 (:code @(discord/edit-message! discord-conn channel-id message-id :content content :components components))))
-        (unlock-message "poll additions" app-id)
-        (do
-          (polls/put-poll! poll)
-          (-> {:content "Poll successfully updated!"} rsp/channel-message rsp/ephemeral)))
-      (finally
-        (reset! currently-updated? false)))))
+    (if (and
+         (= 50017 (:code @(discord/edit-original-interaction-response! discord-conn app-id interaction-token :content content :components components)))
+         (= 50001 (:code @(discord/edit-message! discord-conn channel-id message-id :content content :components components))))
+      (unlock-message "poll additions" app-id)
+      (do
+        (polls/put-poll! poll)
+        (-> {:content "Poll successfully updated!"} rsp/channel-message rsp/ephemeral)))))
 
 (defmethod poll-action "close"
   [_ {{{user-id :id} :user :keys [permissions]} :member :as _interaction} {:keys [id creator-id show-votes] :as _poll} _]
