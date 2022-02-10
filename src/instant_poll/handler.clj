@@ -5,7 +5,7 @@
             [ring-discord-auth.ring :refer [wrap-authenticate]]
             [instant-poll.state :refer [config]]
             [instant-poll.command :refer [handle-command]]
-            [instant-poll.component :refer [handle-button-press]]
+            [instant-poll.component :refer [handle-button-press handle-add-option-form-submit]]
             [mount.core :as mount]
             [org.httpkit.server :as http-server]
             [discljord.util :as discord-util]
@@ -15,7 +15,8 @@
 (def slash-handlers
   (assoc webhook-defaults
          :application-command #'handle-command
-         :message-component #'handle-button-press))
+         :message-component #'handle-button-press
+         :modal-submit #'handle-add-option-form-submit))
 
 (defn handler [{:keys [body]}]
   (response (slash/route-interaction slash-handlers body)))
@@ -26,7 +27,7 @@
 (defn -main [& _args]
   (mount/start)
   (http-server/run-server
-   (-> handler
+   (-> #'handler
       wrap-json-response
       wrap-clean-json
       wrap-json-body
