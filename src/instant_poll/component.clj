@@ -134,6 +134,13 @@
                       :emoji {:name "🔓"}))]}
       rsp/channel-message))
 
+(defn try-update [token channel-id message-id message]
+  (not
+   (and
+    (= 50027 (:code @(apply discord/edit-original-interaction-response! discord-conn app-id token (seq message))))
+    (= 50001 (:code @(apply discord/edit-message! discord-conn channel-id message-id (seq message)))))))
+
+
 (defn handle-add-option-form-submit
   [{{:keys [components custom-id]} :data}]
   (let [option (->> components
@@ -143,15 +150,13 @@
                     (into {}))
         final-option (update option :emoji parse-emoji)
         {:keys [id interaction-token channel-id message-id] :as poll} (update (polls/find-poll custom-id) :options conj final-option)
-        content (polls/render-poll poll (:bar-length config))
-        components (make-components poll)]
-    (if (and
-         (= 50017 (:code @(discord/edit-original-interaction-response! discord-conn app-id interaction-token :content content :components components)))
-         (= 50001 (:code @(discord/edit-message! discord-conn channel-id message-id :content content :components components))))
-      (unlock-message "poll additions" app-id)
+        message {:content (polls/render-poll poll (:bar-length config))
+                 :components (make-components poll)}]
+    (if (try-update interaction-token channel-id message-id message)
       (do
         (polls/put-poll! poll)
-        (-> {:content "Poll successfully updated!"} rsp/channel-message rsp/ephemeral)))))
+        (-> {:content "Poll successfully updated!"} rsp/channel-message rsp/ephemeral))
+      (unlock-message "poll additions" app-id))))
 
 (defmethod poll-action "close"
   [_ {{{user-id :id} :user :keys [permissions]} :member :as _interaction} {:keys [id creator-id show-votes] :as _poll} _]
