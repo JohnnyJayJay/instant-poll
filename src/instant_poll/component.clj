@@ -49,10 +49,12 @@
 (defmulti poll-action (fn [action _interaction _poll _options] action))
 
 (defmethod poll-action "vote"
-  [_ {{{user-id :id} :user} :member :keys [token] :as _interaction} {:keys [id] :as poll} [option]]
-  (let [updated-poll (polls/toggle-vote (assoc poll :interaction-token token) user-id option)]
-    (polls/put-poll! updated-poll)
-    (rsp/update-message {:content (str (polls/render-poll updated-poll (:bar-length config)) \newline (polls/close-notice updated-poll true))})))
+  [_ {{{user-id :id} :user :keys [roles]} :member :keys [token] :as _interaction} {:keys [id voter-role] :as poll} [option]]
+  (if (and voter-role (some #{voter-role} roles))
+    (let [updated-poll (polls/toggle-vote (assoc poll :interaction-token token) user-id option)]
+      (polls/put-poll! updated-poll)
+      (rsp/update-message {:content (str (polls/render-poll updated-poll (:bar-length config)) \newline (polls/close-notice updated-poll true))}))
+    (-> {:content (str "Only users with the " (discord-fmt/mention-role voter-role) " role are allowed to vote.")} rsp/channel-message rsp/ephemeral)))
 
 (defn group-by-votes [votes]
   (reduce-kv
