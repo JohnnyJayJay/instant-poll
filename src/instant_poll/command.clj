@@ -31,6 +31,7 @@
                    [(cmd/choice "Votes are not visible" "never")
                     (cmd/choice "Votes are always visible" "always")
                     (cmd/choice "Votes are only visible after closing" "after-closing")])
+       (cmd/option "voter-role" "The role that is allowed to vote. By default, everyone can vote." :role)
        (cmd/option "multi-vote" "Whether users have multiple votes (default: false)" :boolean)
        (cmd/option "allow-change-options" "Whether it should be possible to add and remove options after creating the poll" :boolean)
        (cmd/option "close-in" "A duration (in seconds) after which voting closes (default: no expiration)" :integer)
@@ -82,7 +83,7 @@
 (defhandler create-command
   ["create"]
   {:keys [application-id token guild-id id] {{user-id :id} :user} :member :as _interaction}
-  {:keys [question show-votes multi-vote close-in allow-change-options] :or {show-votes "never" multi-vote false close-in -1} :as option-map}
+  {:keys [question voter-role show-votes multi-vote close-in allow-change-options] :or {show-votes "never" multi-vote false close-in -1} :as option-map}
   (let [poll-options (command-options->poll-options option-map (:max-key-length config))]
     (cond
       (nil? guild-id)
@@ -104,6 +105,7 @@
                   id
                   {:question question
                    :options poll-options
+                   :voter-role voter-role
                    :show-votes (keyword show-votes)
                    :multi-vote? multi-vote
                    :allow-change-options? allow-change-options
@@ -138,16 +140,20 @@
                        "- '<:simon_peek:863544593483825182> How about that? ; Custom emojis are allowed too.'\n"
                        "- 'No emoji ; An emoji is not required to provide a longer description.'\n"
                        "- '🙂 No extra description'")}
-          {:name "default-keys"
-           :value "Setting this to `True` may improve formatting on mobile devices. In this mode, every option is given a one-letter default key (A-O)."}
           {:name "show-votes"
-           :value (str "Sets the 'anonymity policy' for a poll. It decides whether anyone can see who voted for which option(s).\n"
+           :value (str "Sets the 'anonymity policy' for a poll. It decides whether people can see who voted for which option(s).\n"
                        "There are 3 choices: never show votes (anonymous), always show votes (open) and show votes only after the poll is closed (half-open).\n"
                        "By default, polls are anonymous.")}
+          {:name "voter-role"
+           :value "If you set this option, people must have the specified role to vote. If you don't set it, everybody will be able to participate."}
           {:name "multi-vote"
            :value "Whether voters can pick multiple options. `False` by default."}
+          {:name "allow-change-options"
+           :value "Set this option to `True` to be able to retroactively add options to the poll."}
           {:name "close-in"
-           :value "When set to a positive number `n`, the poll will be closed automatically after `n` seconds.\nBy default, this is not the case."}]}]}
+           :value "When set to a positive number `n`, the poll will be closed automatically after `n` seconds.\nBy default, this is not the case."}
+          {:name "default-keys"
+           :value "Setting this to `True` may improve formatting on mobile devices. In this mode, every option is given a one-letter default key (A-O)."}]}]}
       rsp/channel-message
       rsp/ephemeral))
 
