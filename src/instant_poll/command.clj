@@ -31,6 +31,7 @@
                    [(cmd/choice "Votes are not visible" "never")
                     (cmd/choice "Votes are always visible" "always")
                     (cmd/choice "Votes are only visible after closing" "after-closing")])
+       (cmd/option "voter-role" "The role that is allowed to vote. By default, everyone can vote." :role)
        (cmd/option "multi-vote" "Whether users have multiple votes (default: false)" :boolean)
        (cmd/option "allow-change-options" "Whether it should be possible to add and remove options after creating the poll" :boolean)
        (cmd/option "close-in" "A duration (in seconds) after which voting closes (default: no expiration)" :integer)
@@ -82,7 +83,7 @@
 (defhandler create-command
   ["create"]
   {:keys [application-id token guild-id id] {{user-id :id} :user} :member :as _interaction}
-  {:keys [question show-votes multi-vote close-in allow-change-options] :or {show-votes "never" multi-vote false close-in -1} :as option-map}
+  {:keys [question voter-role show-votes multi-vote close-in allow-change-options] :or {show-votes "never" multi-vote false close-in -1} :as option-map}
   (let [poll-options (command-options->poll-options option-map (:max-key-length config))]
     (cond
       (nil? guild-id)
@@ -104,6 +105,7 @@
                   id
                   {:question question
                    :options poll-options
+                   :voter-role voter-role
                    :show-votes (keyword show-votes)
                    :multi-vote? multi-vote
                    :allow-change-options? allow-change-options
