@@ -140,16 +140,20 @@
                        "- '<:simon_peek:863544593483825182> How about that? ; Custom emojis are allowed too.'\n"
                        "- 'No emoji ; An emoji is not required to provide a longer description.'\n"
                        "- '🙂 No extra description'")}
-          {:name "default-keys"
-           :value "Setting this to `True` may improve formatting on mobile devices. In this mode, every option is given a one-letter default key (A-O)."}
           {:name "show-votes"
-           :value (str "Sets the 'anonymity policy' for a poll. It decides whether anyone can see who voted for which option(s).\n"
+           :value (str "Sets the 'anonymity policy' for a poll. It decides whether people can see who voted for which option(s).\n"
                        "There are 3 choices: never show votes (anonymous), always show votes (open) and show votes only after the poll is closed (half-open).\n"
                        "By default, polls are anonymous.")}
+          {:name "voter-role"
+           :value "If you set this option, people must have the specified role to vote. If you don't set it, everybody will be able to participate."}
           {:name "multi-vote"
            :value "Whether voters can pick multiple options. `False` by default."}
+          {:name "allow-change-options"
+           :value "Set this option to `True` to be able to retroactively add options to the poll."}
           {:name "close-in"
-           :value "When set to a positive number `n`, the poll will be closed automatically after `n` seconds.\nBy default, this is not the case."}]}]}
+           :value "When set to a positive number `n`, the poll will be closed automatically after `n` seconds.\nBy default, this is not the case."}
+          {:name "default-keys"
+           :value "Setting this to `True` may improve formatting on mobile devices. In this mode, every option is given a one-letter default key (A-O)."}]}]}
       rsp/channel-message
       rsp/ephemeral))
 
