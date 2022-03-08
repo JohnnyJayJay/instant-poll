@@ -1,7 +1,7 @@
 (ns instant-poll.command
   (:require [clojure.string :as string]
             [instant-poll.poll :as polls]
-            [instant-poll.component :refer [make-components]]
+            [instant-poll.component :refer [make-components max-options estimate-size unlock-message]]
             [discljord.messaging :as discord]
             [discljord.formatting :as dfmt]
             [instant-poll.state :refer [discord-conn config app-id]]
@@ -11,7 +11,7 @@
             [slash.command :refer [defhandler defpaths group]])
   (:import (com.vdurmont.emoji EmojiManager)))
 
-(def poll-option-names (->> (range 15) (map #(+ % (int \A))) (map char) (mapv str)))
+(def poll-option-names (->> (range max-options) (map #(+ % (int \A))) (map char) (mapv str)))
 
 (def poll-command
   (cmd/command
@@ -32,6 +32,7 @@
                     (cmd/choice "Votes are always visible" "always")
                     (cmd/choice "Votes are only visible after closing" "after-closing")])
        (cmd/option "multi-vote" "Whether users have multiple votes (default: false)" :boolean)
+       (cmd/option "allow-change-options" "Whether it should be possible to add and remove options after creating the poll" :boolean)
        (cmd/option "close-in" "A duration (in seconds) after which voting closes (default: no expiration)" :integer)
        (cmd/option "default-keys" "Whether to use the default option keys (A-O). This can improve formatting on mobile." :boolean)]))
     (cmd/sub-command "help" "Display help for this bot")
@@ -60,46 +61,60 @@
      :description desc
      :emoji emoji}))
 
+(defn not-on-guild? [guild-id]
+  (= 50001 (:code @(discord/get-guild! discord-conn guild-id))))
+
+(defn exceeds-15-min? [close-in]
+  (>= close-in (* 15 60)))
+
+(defn command-options->poll-options [option-map max-key-length]
+  (let [options (->> option-map keys (filter (comp #(Character/isDigit ^char %) first name)) (map option-map) (map parse-option))
+        custom-keys? (and (not (:default-keys option-map)) (every? #(<= (count (:custom-key %)) max-key-length) options))
+        poll-options (map-indexed (partial apply-key-policy custom-keys?) options)]
+    (vec poll-options)))
+
+(defn close-callback
+  [{:keys [application-id interaction-token channel-id message-id] :as poll}]
+  (let [edits [:components [] :content (str (polls/render-poll poll (:bar-length config)) \newline (polls/close-notice poll false))]]
+    (apply discord/edit-original-interaction-response! discord-conn application-id interaction-token edits)
+    (apply discord/edit-message! discord-conn channel-id message-id edits)))
+
 (defhandler create-command
   ["create"]
   {:keys [application-id token guild-id id] {{user-id :id} :user} :member :as _interaction}
-  {:keys [question show-votes multi-vote close-in default-keys] :or {show-votes "never" multi-vote false close-in -1 default-keys false} :as option-map}
-  (cond
-    (nil? guild-id) (-> {:content "I'm afraid there are not a lot of people you can ask questions here :smile:"} rsp/channel-message rsp/ephemeral)
-    (> (->> option-map vals (filter string?) (map count) (reduce +)) 1500) (-> {:content (str "Your poll is too big! :books:")} rsp/channel-message rsp/ephemeral)
+  {:keys [question show-votes multi-vote close-in allow-change-options] :or {show-votes "never" multi-vote false close-in -1} :as option-map}
+  (let [poll-options (command-options->poll-options option-map (:max-key-length config))]
+    (cond
+      (nil? guild-id)
+      (-> {:content "I'm afraid there are not a lot of people you can ask questions here :smile:\n...Wait, how did you even get here?"}
+          rsp/channel-message
+          rsp/ephemeral)
 
-    :else
-    (let [options (->> option-map keys (filter (comp #(Character/isDigit ^char %) first name)) (map option-map) (map parse-option))
-          max-key-length (:max-key-length config)
-          custom-keys? (and (not default-keys) (every? #(<= (count (:custom-key %)) max-key-length) options))
-          poll-options (map-indexed (partial apply-key-policy custom-keys?) options)]
-      (if (< (count (set (map :key poll-options))) (count poll-options))
-        (-> {:content "One of your options has the same key as another! They must all have unique keys. :key:"} rsp/channel-message rsp/ephemeral)
-        (if (and (>= close-in (* 15 60)) (= 50001 (:code @(discord/get-guild! discord-conn guild-id))))
-          (-> {:content (str "For automatic poll closing after more than **15 minutes**, I need additional authorisation."
-                             "\nThis is because Discord doesn't let me edit my messages after a longer period of time anymore if I am not directly on your server.")
-               :components [(cmp/action-row
-                             (cmp/link-button (str "https://discord.com/api/oauth2/authorize?client_id=" app-id "&scope=bot")
-                                              :label "Unlock auto-closing after 15 minutes"
-                                              :emoji {:name "🔓"}))]}
-              rsp/channel-message)
-          (let [poll (polls/create-poll!
-                      id
-                      {:question question
-                       :options poll-options
-                       :show-votes (keyword show-votes)
-                       :multi-vote? multi-vote
-                       :application-id application-id
-                       :interaction-token token
-                       :creator-id user-id}
-                      close-in
-                      (fn [{:keys [application-id interaction-token channel-id message-id] :as poll}]
-                        (let [edits [:components [] :content (str (polls/render-poll poll (:bar-length config)) \newline (polls/close-notice poll false))]]
-                          (apply discord/edit-original-interaction-response! discord-conn application-id interaction-token edits)
-                          (apply discord/edit-message! discord-conn channel-id message-id edits))))]
-            (rsp/channel-message
-             {:content (str (polls/render-poll poll (:bar-length config)) \newline (polls/close-notice poll true))
-              :components (make-components poll)})))))))
+      (< (count (set (map :key poll-options))) (count poll-options))
+      (-> {:content "One of your options has the same key as another! They must all have unique keys. :key:"} rsp/channel-message rsp/ephemeral)
+
+      (> (estimate-size question poll-options (:bar-length config)) 1950)
+      (-> {:content (str "Your poll is too big! :books:")} rsp/channel-message rsp/ephemeral)
+
+      (and (exceeds-15-min? close-in) (not-on-guild? guild-id))
+      (unlock-message "automatic poll closing" app-id)
+
+      :else
+      (let [poll (polls/create-poll!
+                  id
+                  {:question question
+                   :options poll-options
+                   :show-votes (keyword show-votes)
+                   :multi-vote? multi-vote
+                   :allow-change-options? allow-change-options
+                   :application-id application-id
+                   :interaction-token token
+                   :creator-id user-id}
+                  close-in
+                  close-callback)]
+        (rsp/channel-message
+         {:content (str (polls/render-poll poll (:bar-length config)) \newline (polls/close-notice poll true))
+          :components (make-components poll)})))))
 
 (defhandler help-command
   ["help"]
