@@ -6,8 +6,7 @@
             [discljord.formatting :as discord-fmt]
             [discljord.permissions :as discord-perms]
             [slash.component.structure :as cmp]
-            [slash.response :as rsp]
-            [discljord.messaging :as discord])
+            [slash.response :as rsp])
   (:import (com.vdurmont.emoji EmojiManager)))
 
 (def max-options 15)
@@ -39,7 +38,7 @@
         (cmp/button :primary (str "vote" action-separator key) :label key :emoji emoji))))
    (when allow-add-options?
      [(cmp/action-row
-       remove-option-button
+       #_remove-option-button
        add-option-button)])
    [(apply
      cmp/action-row
@@ -96,11 +95,17 @@
                                        {:key (apply str (repeat max-key-length \a)) :description ""}))]
     (- 1920 (count (polls/render-poll updated bar-length)))))
 
+(def creator-only-response
+  (-> {:content "❌ Sorry, only the creator of this poll can add more options."} rsp/channel-message rsp/ephemeral))
+
+(defn option-limit-response [type]
+  (-> {:content (str "❌ The " type " number of supported options has already been reached.") rsp/channel-message rsp/ephemeral}))
+
 (defmethod poll-action "add-option"
   [_ {{{user-id :id} :user} :member :as _interaction} {:keys [id creator-id options] :as poll} _]
   (cond
-    (not= user-id creator-id) (-> {:content "❌ Sorry, only the creator of this poll can add more options."} rsp/channel-message rsp/ephemeral)
-    (> (count options) max-options) (-> {:content "❌ The maximum number of supported options has already been reached." rsp/channel-message rsp/ephemeral})
+    (not= user-id creator-id) creator-only-response
+    (= (count options) max-options) (option-limit-response "maximum")
     :else
     (let [max-key-length (:max-key-length config)
           available (available-size poll (:bar-length config) max-key-length)]
@@ -115,6 +120,28 @@
            [(cmp/action-row (cmp/text-input :short "key" "Option key" :required true :max-length (min available max-key-length)))]
            [(cmp/action-row (cmp/text-input :short "key" "Option key" :required true :max-length max-key-length))
             (cmp/action-row (cmp/text-input :paragraph "description" "Option description" :required false :max-length available))]))))))
+
+(defmethod poll-action "remove-option"
+  [_ {{{user-id :id} :user} :member :as _interaction} {:keys [id creator-id options] :as poll} _]
+  (cond
+    (not= user-id creator-id) creator-only-response
+    (= (count options) 2) (option-limit-response "minimum")
+    :else
+    (let [max-removal (- (count options) 2)]
+      (rsp/modal
+       "Select the options you'd like to remove"
+       "remove-selection"
+       (cmp/action-row
+        (cmp/select-menu
+         "options-to-remove"
+         (map (fn [{:keys [key emoji]}] (cmp/select-option key key :emoji emoji)) options)
+         :placeholder "Select option(s)"
+         :max-values max-removal))))))
+
+(defmethod poll-action "options-to-remove"
+  [_ {{:keys [values]} :data :as _interaction} {:keys [interaction-token channel-id message-id options] :as poll} _]
+  ;; TODO remove selected values from options and from voter map
+  )
 
 (defn parse-emoji [^String emoji-str]
   (let [[_ a name id :as match] (re-matches discord-fmt/emoji-mention emoji-str)]
@@ -134,13 +161,6 @@
                       :emoji {:name "🔓"}))]}
       rsp/channel-message))
 
-(defn try-update [token channel-id message-id message]
-  (not
-   (and
-    (= 50027 (:code @(apply discord/edit-original-interaction-response! discord-conn app-id token (seq message))))
-    (= 50001 (:code @(apply discord/edit-message! discord-conn channel-id message-id (seq message)))))))
-
-
 (defn handle-add-option-form-submit
   [{{:keys [components custom-id]} :data}]
   (let [option (->> components
@@ -148,15 +168,16 @@
                     (map first)
                     (map (juxt (comp keyword :custom-id) :value))
                     (into {}))
-        final-option (update option :emoji parse-emoji)
-        {:keys [id interaction-token channel-id message-id] :as poll} (update (polls/find-poll custom-id) :options conj final-option)
-        message {:content (polls/render-poll poll (:bar-length config))
-                 :components (make-components poll)}]
-    (if (try-update interaction-token channel-id message-id message)
+        {:keys [key] :as final-option} (update option :emoji parse-emoji)
+        {:keys [options] :as old-poll} (polls/find-poll custom-id)
+        new-poll (update old-poll  :options conj final-option)
+        message {:content (polls/render-poll new-poll (:bar-length config))
+                 :components (make-components new-poll)}]
+    (if (some #{key} (map :key options))
+      (-> {:content (str "There already is an option with key `" key "`!")} rsp/channel-message rsp/ephemeral)
       (do
-        (polls/put-poll! poll)
-        (-> {:content "Poll successfully updated!"} rsp/channel-message rsp/ephemeral))
-      (unlock-message "poll additions" app-id))))
+        (polls/put-poll! new-poll)
+        (-> message rsp/update-message rsp/ephemeral)))))
 
 (defmethod poll-action "close"
   [_ {{{user-id :id} :user :keys [permissions]} :member :as _interaction} {:keys [id creator-id show-votes] :as _poll} _]
