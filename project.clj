@@ -1,4 +1,4 @@
-(defproject instant-poll "0.3.0-SNAPSHOT"
+(defproject instant-poll "0.4.0-SNAPSHOT"
   :description "Discord app to create live polls"
   :url "https://github.com/JohnnyJayJay/instant-poll"
   :min-lein-version "2.0.0"
@@ -9,7 +9,7 @@
                  [com.github.johnnyjayjay/ring-discord-auth "1.0.1"]
                  [mount "0.1.16"]
                  [com.github.discljord/discljord "1.3.1"]
-                 [com.github.johnnyjayjay/slash "0.4.0-SNAPSHOT"]
+                 [com.github.johnnyjayjay/slash "0.5.0-SNAPSHOT"]
                  [com.vdurmont/emoji-java "5.1.1"]
                  [datalevin "0.5.27"]]
   :main instant-poll.handler
