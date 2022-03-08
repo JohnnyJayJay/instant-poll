@@ -29,14 +29,14 @@
 (def close-poll-button
   (cmp/button :danger "close" :label "Close Poll" :emoji {:name "🔒"}))
 
-(defn make-components [{:keys [options show-votes allow-add-options?] :as _poll}]
+(defn make-components [{:keys [options show-votes allow-change-options?] :as _poll}]
   (concat
    (for [option-group (partition-all 5 options)]
      (apply
       cmp/action-row
       (for [{:keys [key emoji]} option-group]
         (cmp/button :primary (str "vote" action-separator key) :label key :emoji emoji))))
-   (when allow-add-options?
+   (when allow-change-options?
      [(cmp/action-row
        #_remove-option-button
        add-option-button)])

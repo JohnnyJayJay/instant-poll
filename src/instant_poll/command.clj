@@ -32,7 +32,7 @@
                     (cmd/choice "Votes are always visible" "always")
                     (cmd/choice "Votes are only visible after closing" "after-closing")])
        (cmd/option "multi-vote" "Whether users have multiple votes (default: false)" :boolean)
-       (cmd/option "allow-add-options" "Whether it should be possible to add more options after creating the poll" :boolean)
+       (cmd/option "allow-change-options" "Whether it should be possible to add and remove options after creating the poll" :boolean)
        (cmd/option "close-in" "A duration (in seconds) after which voting closes (default: no expiration)" :integer)
        (cmd/option "default-keys" "Whether to use the default option keys (A-O). This can improve formatting on mobile." :boolean)]))
     (cmd/sub-command "help" "Display help for this bot")
@@ -82,7 +82,7 @@
 (defhandler create-command
   ["create"]
   {:keys [application-id token guild-id id] {{user-id :id} :user} :member :as _interaction}
-  {:keys [question show-votes multi-vote close-in allow-add-options] :or {show-votes "never" multi-vote false close-in -1} :as option-map}
+  {:keys [question show-votes multi-vote close-in allow-change-options] :or {show-votes "never" multi-vote false close-in -1} :as option-map}
   (let [poll-options (command-options->poll-options option-map (:max-key-length config))]
     (cond
       (nil? guild-id)
@@ -106,7 +106,7 @@
                    :options poll-options
                    :show-votes (keyword show-votes)
                    :multi-vote? multi-vote
-                   :allow-add-options? allow-add-options
+                   :allow-change-options? allow-change-options
                    :application-id application-id
                    :interaction-token token
                    :creator-id user-id}
