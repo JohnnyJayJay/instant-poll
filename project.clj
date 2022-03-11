@@ -1,4 +1,4 @@
-(defproject instant-poll "0.4.0-SNAPSHOT"
+(defproject instant-poll "0.4.1-SNAPSHOT"
   :description "Discord app to create live polls"
   :url "https://github.com/JohnnyJayJay/instant-poll"
   :min-lein-version "2.0.0"
