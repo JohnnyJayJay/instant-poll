@@ -10,7 +10,9 @@ instant-poll is a [Discord](https://discord.com) application that allows you to 
 - Cutting-edge Discord features (slash commands, message buttons)
 - Timed Polls
 - Polls with multiple votes per user
+- Dynamic Polls (adding options as you go)
 - Open (non-anonymous) polls
+- Restricted polls (only certain roles can participate)
 - Gateway-free (you don't need to invite the bot to use it)
 
 ## Add it to your server
