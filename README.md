@@ -10,7 +10,9 @@ instant-poll is a [Discord](https://discord.com) application that allows you to 
 - Cutting-edge Discord features (slash commands, message buttons)
 - Timed Polls
 - Polls with multiple votes per user
+- Dynamic Polls (adding options as you go)
 - Open (non-anonymous) polls
+- Restricted polls (only certain roles can participate)
 - Gateway-free (you don't need to invite the bot to use it)
 
 ## Add it to your server
@@ -23,14 +25,16 @@ You can verify this by typing `/poll info`.
 ## Usage
 Use `/poll create` to create a poll. 
 
-| Parameter      | Description                                                                 | Constraints                               |
-|----------------|-----------------------------------------------------------------------------|-------------------------------------------|
-| `question`     | The poll question                                                           | /                                         |
-| `1`..`15`      | The options voters can pick from                                            | Format: `<emoji>? <key>? ; <description>` |
-| `default-keys` | Whether to use option keys A-O automatically. May improve mobile formatting | True or False                             |
-| `show-votes`   | Whether it will be visible who voted for which option(s)                    | always, never or after closing            |
-| `multi-vote`   | Whether every voter can pick multiple options                               | True or False                             |
-| `close-in`     | Number of seconds after which poll is closed                                | positive number, <= 0 will be ignored     |
+| Parameter              | Description                                                                 | Constraints                               |
+|------------------------|-----------------------------------------------------------------------------|-------------------------------------------|
+| `question`             | The poll question                                                           | /                                         |
+| `1`..`15`              | The options voters can pick from                                            | Format: `<emoji>? <key>? ; <description>` |
+| `voter-role`           | A role people must have in order to participate                             | Any existing role                         |
+| `allow-change-options` | Whether it should be possible to add more options after creation            | True or False                             |
+| `show-votes`           | Whether it will be visible who voted for which option(s)                    | always, never or after closing            |
+| `multi-vote`           | Whether every voter can pick multiple options                               | True or False                             |
+| `close-in`             | Number of seconds after which poll is closed                                | positive number, <= 0 will be ignored     |
+| `default-keys`         | Whether to use option keys A-O automatically. May improve mobile formatting | True or False                             |
 
 
 Polls can be closed by the poll creator and people who are allowed to delete messages.

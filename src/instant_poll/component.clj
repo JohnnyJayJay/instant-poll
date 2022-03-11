@@ -50,7 +50,7 @@
 
 (defmethod poll-action "vote"
   [_ {{{user-id :id} :user :keys [roles]} :member :keys [token] :as _interaction} {:keys [id voter-role] :as poll} [option]]
-  (if (and voter-role (some #{voter-role} roles))
+  (if (or (not voter-role) (some #{voter-role} roles))
     (let [updated-poll (polls/toggle-vote (assoc poll :interaction-token token) user-id option)]
       (polls/put-poll! updated-poll)
       (rsp/update-message {:content (str (polls/render-poll updated-poll (:bar-length config)) \newline (polls/close-notice updated-poll true))}))
