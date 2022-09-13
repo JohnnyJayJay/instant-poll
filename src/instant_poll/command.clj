@@ -37,7 +37,8 @@
        (cmd/option "close-in" "A duration (in seconds) after which voting closes (default: no expiration)" :integer)
        (cmd/option "default-keys" "Whether to use the default option keys (A-O). This can improve formatting on mobile." :boolean)]))
     (cmd/sub-command "help" "Display help for this bot")
-    (cmd/sub-command "info" "Display information about this bot")]))
+    (cmd/sub-command "info" "Display information about this bot")
+    (cmd/sub-command "privacy" "Your privacy and data")]))
 
 (defn parse-option [opt-string]
   (let [[key-part desc-part] (string/split opt-string #"\s*;\s*" 2)
@@ -178,6 +179,19 @@
           :emoji {:name "🛠️"}))]}
       rsp/channel-message
       rsp/ephemeral))
+
+(defhandler privacy-command
+    ["privacy"]
+    _
+    _
+  (-> {:content "Instant Poll collects data to provide its functionalities.
+Below you can find a link to a more detailed privacy policy that explains what data is collected and for what purposes, as well as options to get access to or delete all data that is associated with you."
+       :components
+       [(cmp/action-row
+         (cmp/link-button "" :label "Privacy Policy"))
+        (cmp/action-row
+         (cmp/button :primary "request-data" :label "Request Data" :emoji "🔎")
+         (cmp/button :danger "delete-data" :label "Delete Data" :emoji "🗑"))]}))
 
 (defpaths handle-command
   (group ["poll"]
