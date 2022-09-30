@@ -1,56 +1,85 @@
-[{
-  "name" : "poll",
-  "description" : "Create and manage polls",
-  "options" : [ {
-    "name" : "create",
-    "description" : "Create a new poll",
-    "type" : 1,
-    "options" : [ {
-      "name" : "question",
-      "description" : "The poll question",
-      "type" : 3,
-      "required" : true
-    }, {
-      "name" : "1",
-      "description" : "Option no. 1",
-      "type" : 3,
-      "required" : true
-    }, {
-      "name" : "2",
-      "description" : "Option no. 2",
-      "type" : 3,
-      "required" : true
-    }, {
-      "name" : "3",
-      "description" : "Option no. 3",
-      "type" : 3,
-      "required" : false
-    }, {
-      "name" : "4",
-      "description" : "Option no. 4",
-      "type" : 3,
-      "required" : false
-    }, {
-      "name" : "5",
-      "description" : "Option no. 5",
-      "type" : 3,
-      "required" : false
-    }, {
-      "name" : "multi-vote",
-      "description" : "Whether users have multiple votes (default: false)",
-      "type" : 5
-    }, {
-      "name" : "close-in",
-      "description" : "A duration (in seconds) after which voting closes (default: no expiration)",
-      "type" : 4
-    } ]
-  }, {
-    "name" : "help",
-    "description" : "Display help for this bot",
-    "type" : 1
-  }, {
-    "name" : "info",
-    "description" : "Display information about this bot",
-    "type" : 1
-  } ]
-}]
+{"name":"poll",
+ "description":"Create and manage polls",
+ "options":
+ [{"type":1,
+   "name":"create",
+   "description":"Create a new poll",
+   "options":
+   [{"type":3,
+     "name":"question",
+     "description":"The poll question",
+     "required":true},
+    {"type":3, "name":"1", "description":"Option A", "required":true},
+    {"type":3, "name":"2", "description":"Option B", "required":true},
+    {"type":3, "name":"3", "description":"Option C", "required":
+                                                     false},
+    {"type":3, "name":"4", "description":"Option D", "required":
+                                                     false},
+    {"type":3, "name":"5", "description":"Option E", "required":
+                                                     false},
+    {"type":3, "name":"6", "description":"Option F", "required":
+                                                     false},
+    {"type":3, "name":"7", "description":"Option G", "required":
+                                                     false},
+    {"type":3, "name":"8", "description":"Option H", "required":
+                                                     false},
+    {"type":3, "name":"9", "description":"Option I", "required":
+                                                     false},
+    {"type":3,
+     "name":"10",
+     "description":"Option J",
+     "required":false},
+    {"type":3,
+     "name":"11",
+     "description":"Option K",
+     "required":false},
+    {"type":3,
+     "name":"12",
+     "description":"Option L",
+     "required":false},
+    {"type":3,
+     "name":"13",
+     "description":"Option M",
+     "required":false},
+    {"type":3,
+     "name":"14",
+     "description":"Option N",
+     "required":false},
+    {"type":3,
+     "name":"15",
+     "description":"Option O",
+     "required":false},
+    {"type":3,
+     "name":"show-votes",
+     "description":
+     "Whether it should be visible who votes for which option (default: votes are not visible)",
+     "choices":
+     [{"name":"Votes are not visible", "value":"never"},
+      {"name":"Votes are always visible", "value":"always"},
+      {"name":"Votes are only visible after closing",
+       "value":"after-closing"}]},
+    {"type":8,
+     "name":"voter-role",
+     "description":
+     "The role that is allowed to vote. By default, everyone can vote."},
+    {"type":5,
+     "name":"multi-vote",
+     "description":
+     "Whether users have multiple votes (default: false)"},
+    {"type":5,
+     "name":"allow-change-options",
+     "description":
+     "Whether it should be possible to add and remove options after creating the poll"},
+    {"type":4,
+     "name":"close-in",
+     "description":
+     "A duration (in seconds) after which voting closes (default: no expiration)"},
+    {"type":5,
+     "name":"default-keys",
+     "description":
+     "Whether to use the default option keys (A-O). This can improve formatting on mobile."}]},
+  {"type":1, "name":"help", "description":
+                            "Display help for this bot"},
+  {"type":1,
+   "name":"info",
+   "description":"Display information about this bot"}]}
