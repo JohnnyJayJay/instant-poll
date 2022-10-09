@@ -14,5 +14,6 @@
                  [datalevin "0.5.27"]]
   :main instant-poll.handler
   :aot :all
+  :plugins [[lein-cljfmt "0.9.0"]]
   :global-vars {*warn-on-reflection* true}
   :jvm-opts ["--add-opens=java.base/java.nio=ALL-UNNAMED" "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED"])
