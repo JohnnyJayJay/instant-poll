@@ -1,3 +1,5 @@
+(ns instant-poll.db
+  (:require [datahike.api :as d]))
 
 (def schema
   [{:db/ident :poll/id
@@ -11,6 +13,7 @@
     :db/cardinality :db.cardinality/one}
    {:db/ident :poll/option
     :db/doc "An option that users may choose for this poll"
+    :db/isComponent true
     :db/valueType :db.type/ref
     :db/cardinality :db.cardinality/many}
    {:db/ident :poll.option/key
@@ -72,3 +75,47 @@
     :db/tupleAttrs [:poll.vote/poll :poll.vote/user-id]
     :db/cardinality :db.cardinality/one
     :db/unique :db.unique/identity}])
+
+
+(def user-votes-q
+  '[:find ?poll-id ?question ?vote-key ?vote-desc
+    ;:keys poll-id question vote-key vote-desc
+    :in $ ?user-id
+    :where [?vote :poll.vote/user-id ?user-id]
+           [?vote :poll.vote/key ?vote-key]
+           [?vote :poll.vote/poll ?poll]
+           [?poll :poll/id ?poll-id]
+           [?poll :poll/question ?question]
+           [?poll :poll/option ?option]
+           [?option :poll.option/key ?vote-key]
+           [?option :poll.option/description ?vote-desc]])
+
+(def poll-votes-q
+  '[:find ?vote-key (count ?user-id)
+    :in $ ?poll-id
+    :with ?vote-key
+    :where [?poll :poll/id ?poll-id]
+           [?vote :poll.vote/poll ?poll]
+           [?vote :poll.vote/vote-key ?vote-key]
+           [?vote :poll.vote/user-id ?user-id]])
+
+(def poll-user-vote-q
+  '[:find ?vote-key .
+    :in $ ?poll-id ?user-id ?vote-key
+    :where [?poll :poll/id ?poll-id]
+           [?vote :poll.vote/poll+user-id [?poll ?user-id]]
+           [?vote :poll.vote/key ?vote-key]])
+
+(def vote-pull
+  '[* {:poll/option [*]}])
+
+(defn toggle-vote [db poll-id user-id option-key]
+  (let [existing-vote (d/q poll-user-vote-q db poll-id user-id option-key)]
+    [[(if existing-vote :db/retract :db/add)
+      [:poll.vote/poll+user-id [[:poll/id poll-id] user-id]]
+      :poll.vote/key
+      option-key]]))
+
+(def install-fn-tx
+  {:db/ident :toggle-vote
+   :db/fn toggle-vote})
