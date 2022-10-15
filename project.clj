@@ -11,7 +11,8 @@
                  [com.github.discljord/discljord "1.3.1"]
                  [com.github.johnnyjayjay/slash "0.5.0-SNAPSHOT"]
                  [com.vdurmont/emoji-java "5.1.1"]
-                 [datalevin "0.5.27"]]
+                 [datalevin "0.5.27"]
+                 [io.replikativ/datahike "0.5.1516"]]
   :main instant-poll.handler
   :aot :all
   :plugins [[lein-cljfmt "0.9.0"]]
