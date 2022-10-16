@@ -78,12 +78,12 @@
     :db/unique :db.unique/identity}])
 
 (def user-votes-q
-  '[:find (pull ?vote pattern)
+  '[:find [(pull ?vote pattern) ...]
     :in $ ?user-id pattern
     :where [?vote :vote/user-id ?user-id]])
 
 (def user-polls-q
-  '[:find (pull ?poll pattern)
+  '[:find [(pull ?poll pattern) ...]
     :in $ ?user-id pattern
     :where [?poll :poll/creator-id ?user-id]])
 
