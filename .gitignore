@@ -10,3 +10,5 @@ pom.xml.asc
 /.nrepl-port
 config/config.edn
 .clj-kondo/.cache/
+.lsp/.cache
+data/
