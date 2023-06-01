@@ -80,6 +80,10 @@
     (apply discord/edit-original-interaction-response! discord-conn application-id interaction-token edits)
     (apply discord/edit-message! discord-conn channel-id message-id edits)))
 
+(defn filter-public-role [guild-id role-id]
+  (when (not= guild-id role-id)
+    role-id))
+
 (defhandler create-command
   ["create"]
   {:keys [application-id token guild-id id] {{user-id :id} :user} :member :as _interaction}
@@ -105,7 +109,7 @@
                   id
                   {:question question
                    :options poll-options
-                   :voter-role voter-role
+                   :voter-role (filter-public-role guild-id voter-role)
                    :show-votes (keyword show-votes)
                    :multi-vote? multi-vote
                    :allow-change-options? allow-change-options
