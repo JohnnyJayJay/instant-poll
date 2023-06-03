@@ -14,15 +14,18 @@
 (def delimiter
   (format "--%s\r\n" boundary))
 
-(defn- encode-part [{:keys [content name headers]}]
-  (let [header-str (->> (assoc headers "Content-Disposition" (str "form-data; name=\"" name "\"\r\n"))
-                        (map (fn [[k v]] (str k ": " v "\r\n"))))]
+(defn- encode-part [{:keys [content name filename headers]}]
+  (let [content-disposition (str "form-data; name=\"" name \"
+                                 (when filename (str "; filename=\"" filename \")))
+        header-str (->> (assoc headers "Content-Disposition" content-disposition)
+                        (map (fn [[k v]] (str k ": " v "\r\n")))
+                        str/join)]
     (str
+     delimiter
      header-str
      "\r\n"
      content
-     "\r\n"
-     delimiter)))
+     "\r\n")))
 
 (defn encode
   "Encode edn representation of multipart response to multipart string.
@@ -33,7 +36,7 @@
   - `:headers` - map of string header key to string header value (such as `filename` or `Content-Type`)
   - `:content` - part content, as a string"
   [parts]
-  (str (str/join (map encode-part parts)) "--"))
+  (str (str/join (map encode-part parts)) "--" boundary "--"))
 
 (defn form-data-response [response]
   (-> response
