@@ -28,12 +28,12 @@
 (defn wrap-content-response
   "Middleware that processes response data for transmission via HTTP.
 
-  If the response body has `:multipart?` meta set to true, the response will be processed as a `multipart/form-data` response.
+  If the response body has `:multipart` meta set to true, the response will be processed as a `multipart/form-data` response.
   Otherwise, a `application/json` response will be created."
   [handler]
   (fn [request]
     (let [resp (handler request)]
-      (if (-> resp :body meta :multipart?)
+      (if (-> resp :body meta :multipart)
         (multipart/form-data-response resp)
         (json/json-response resp {})))))
 
