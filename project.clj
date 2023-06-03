@@ -12,7 +12,8 @@
                  [com.github.johnnyjayjay/slash "0.5.0-SNAPSHOT"]
                  [com.vdurmont/emoji-java "5.1.1"]
                  [datalevin "0.5.27"]]
-  :plugins [[com.github.johnnyjayjay/lein-licenses "0.2.0"]]
+  :plugins [[com.github.johnnyjayjay/lein-licenses "0.2.0"]
+            [lein-ancient "1.0.0-RC3"]]
   :main instant-poll.handler
   :aot :all
   :global-vars {*warn-on-reflection* true}
