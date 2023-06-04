@@ -1,13 +1,17 @@
 (ns instant-poll.component
   (:require [clojure.string :as string]
+            [clojure.data.json :as json]
+            [clojure.java.io :as io]
             [instant-poll.poll :as polls]
             [instant-poll.state :refer [config discord-conn app-id]]
             [discljord.util :refer [parse-if-str]]
+            [discljord.messaging :as discord]
             [discljord.formatting :as discord-fmt]
             [discljord.permissions :as discord-perms]
             [slash.component.structure :as cmp]
             [slash.response :as rsp])
-  (:import (com.vdurmont.emoji EmojiManager)))
+  (:import com.vdurmont.emoji.EmojiManager
+           java.nio.charset.StandardCharsets))
 
 (def max-options 15)
 
@@ -64,21 +68,51 @@
    votes))
 
 (defmethod poll-action "show-votes"
-  [_ {} {:keys [votes] :as _poll} _]
-  (-> {:content
-       (let [msg (str
-                  "**Here are the individual votes for this poll:**\n"
-                  (string/join
-                   "\n\n"
-                   (map (fn [[option users]]
-                          (str "`" option "`:\n" (string/join ", " (map discord-fmt/mention-user users))))
-                        (group-by-votes votes))))]
-         (if (> (count msg) 2000)
-           "Sorry, I can't display the votes, there are too many."
-           msg))
-       :allowed_mentions {}}
-      rsp/channel-message
-      rsp/ephemeral))
+  [_ {} {:keys [votes id] :as _poll} _]
+  (let [msg (str
+             "**Here are the individual votes for this poll:**\n"
+             (string/join
+              "\n\n"
+              (map (fn [[option users]]
+                     (str "`" option "`:\n" (string/join ", " (map discord-fmt/mention-user users))))
+                   (group-by-votes votes))))]
+    (-> (if (> (count msg) 2000)
+            {:content (str "Sorry, I can't display the votes, there are too many.\n"
+                           "Would you like to receive the voting data as a JSON file instead?")
+             :components [(cmp/action-row
+                           (cmp/button :primary (str "show-votes-json_" id) :label "Get JSON"))]}
+            {:content msg
+             :allowed_mentions {}})
+        rsp/channel-message
+        rsp/ephemeral)))
+
+;; The implementation of this action is a workaround to upload files in response to an interaction.
+;; For this purpose, it is necessary to respond to the interaction via HTTP call rather than using the
+;; HTTP response mechanism
+(defmethod poll-action "show-votes-json"
+  [_ {:keys [application-id id token]} {:keys [votes] :as _poll} _]
+  @(discord/create-interaction-response!
+    discord-conn id token 7
+    :data {:content "Here you go!"
+           :components []
+           :attachments [{:id "0"}]}
+    :stream {:content (io/input-stream (.getBytes (json/write-str votes) StandardCharsets/UTF_8))
+             :filename "votes.json"})
+
+  ;; FIXME This part currently doesn't work, because Discord doesn't accept multipart responses (yet.)
+  ^:multipart
+  #_[{:name "payload_json"
+      :headers {"Content-Type" "application/json; charset=utf-8"}
+      :content (json/write-str
+                {:type 7
+                 :data {:content "Here you go!"
+                        :components []
+                        :attachments [{:id "0"}]}})}
+     {:name "files[0]"
+      :filename "votes.json"
+      :headers {"Content-Type" "text/plain; charset=utf-8"}
+      :content (json/write-str votes)}]
+  {:message "Discord pls fix"})
 
 (defn estimate-size [question options bar-length]
   (count (polls/render-poll
@@ -93,8 +127,8 @@
 
 (defn available-size [poll bar-length max-key-length]
   (let [updated (update poll :options conj (if (keys-only? poll)
-                                       {:key ""}
-                                       {:key (apply str (repeat max-key-length \a)) :description ""}))]
+                                             {:key ""}
+                                             {:key (apply str (repeat max-key-length \a)) :description ""}))]
     (- 1920 (count (polls/render-poll updated bar-length)))))
 
 (def creator-only-response
@@ -141,9 +175,8 @@
          :max-values max-removal))))))
 
 (defmethod poll-action "options-to-remove"
-  [_ {{:keys [values]} :data :as _interaction} {:keys [interaction-token channel-id message-id options] :as poll} _]
+  [_ {{:keys [values]} :data :as _interaction} {:keys [interaction-token channel-id message-id options] :as poll} _])
   ;; TODO remove selected values from options and from voter map
-  )
 
 (defn parse-emoji [^String emoji-str]
   (let [[_ a name id :as match] (re-matches discord-fmt/emoji-mention emoji-str)]
@@ -200,12 +233,15 @@
 
 (defn handle-button-press
   [{{:keys [custom-id]} :data
-    {{poll-id :id} :interaction message-id :id :keys [channel-id]} :message
+    {{m-poll-id :id} :interaction message-id :id :keys [channel-id]} :message
     :as interaction}]
-  (if-let [poll (polls/find-poll poll-id)]
-    (let [[action & options] (parse-custom-id custom-id)]
-      (when-not (:channel-id poll)
-        (polls/put-poll! (assoc poll :channel-id channel-id :message-id message-id)))
-      (poll-action action interaction poll options))
-    ;; if poll not found
-    (-> {:content "This poll isn't active anymore."} rsp/channel-message rsp/ephemeral)))
+  (let [[action & [o-poll-id :as options]] (parse-custom-id custom-id)
+        poll (or (polls/find-poll m-poll-id) (polls/find-poll o-poll-id))]
+    (if poll
+      (do
+        (when-not (:channel-id poll)
+          (polls/put-poll! (assoc poll :channel-id channel-id :message-id message-id)))
+        (poll-action action interaction poll options))
+
+      ;; if poll not found
+      (-> {:content "This poll isn't available anymore."} rsp/channel-message rsp/ephemeral))))
