@@ -1,7 +1,7 @@
 version: "3.9"
 services:
   server:
-    image: johnnyjayjay/instant-poll:latest
+    build: .
     volumes:
       - ./config:/usr/app/instant-poll/config:ro # if you want to change this, also set the env variable CONFIG
     ports:
