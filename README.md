@@ -46,14 +46,17 @@ You can host this application yourself using [Docker](https://docker.com). Furth
 ### Setup
 
 #### Installation
-Make a directory for the app, `cd` into it and run
 
-``` bash
-wget https://raw.githubusercontent.com/JohnnyJayJay/instant-poll/main/config/config.edn.template -O config/config.edn
-wget https://raw.githubusercontent.com/JohnnyJayJay/instant-poll/main/docker-compose.yml
-```
+This installation guide assumes basic familiarity with using a Linux server.
 
-Edit `config/config.edn` to include the public key and token of your Discord app. You can find both of these on your [applications page](https://discord.com/developers/applications).
+1. Clone the repository and enter it
+   ```bash
+   git clone https://github.com/JohnnyJayJay/instant-poll
+   cd instant-poll
+   ```
+2. Edit `config/config.template.edn` to include the public key and token of your Discord app. You can find both of these on your [applications page](https://discord.com/developers/applications).
+3. `mv config/config.template.edn config/config.edn`
+
 
 #### Proxy Setup
 The application will run a web server that accepts Discord requests at any URI. You should set up your reverse proxy to forward requests to your domain
@@ -65,22 +68,31 @@ port that you want your reverse proxy to forward to.
 
 #### Slash Commands Registration
 
-Run
+Run the following command to register instant-poll's commands globally for your bot:
+
 ``` bash
-wget https://github.com/JohnnyJayJay/instant-poll/blob/main/command.json
-token="your-bot-token"
-appid="your-bot-id"
-curl -d "@command.json" \ 
-     -H "Content-Type: application/json" \
-     -H "Authorization: Bot $token" \ 
-     https://discord.com/api/v9/applications/$appid/commands
+docker compose run -e UPDATE_COMMANDS=1 server`
 ```
 
-If you get a success response, you've registered the command(s) in your app.
+You should see a confirmation in the logs.
+
+#### Updating
+
+To update to the latest version of instant-poll, run
+
+``` bash
+git pull
+docker compose build 
+```
+
+If there are changes to the set of commands provided by instant-poll, you have to [re-register them](#Slash-Command-Registration).
+
+Restarting the bot works via `docker compose down` and then [running](#Run) again.
+
 
 ### Run
 
-To start the app, run `docker-compose up` or `docker-compose up -d` to start in detached mode.
+To start the app, run `docker compose up` or `docker compose up -d` to start in detached mode.
 
 If it's your first run, you need to tell Discord where to send interactions now. Again, you can to that on the developer portal in your application's page. Set "Interactions Endpoint URL" to whereever your server accepts requests and save your changes.
 
@@ -88,6 +100,6 @@ Depending on when you registered the slash commands, you may have to wait up to 
 
 ## License
 
-Copyright © 2021-2022 JohnnyJayJay
+Copyright © 2021-2023 JohnnyJayJay
 
 Licensed under the [MIT License](./LICENSE).
