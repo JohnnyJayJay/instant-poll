@@ -27,11 +27,11 @@
 (defn wrap-clean-json [handler]
   #(handler (update % :body discord-util/clean-json-input)))
 
-(defn -main [arg]
-  (when (= arg "update")
+(defn -main [& _args]
+  (when (System/getenv "UPDATE_COMMANDS")
     (log/info "Updating global slash commands")
     (mount/start #'state/config #'state/discord-conn)
-    (let [result @(dm/bulk-overwrite-global-application-commands! state/discord-conn [poll-command])]
+    (let [result @(dm/bulk-overwrite-global-application-commands! state/discord-conn state/app-id [poll-command])]
       (mount/stop)
       (when (instance? Exception result)
         (log/error result "Updating commands was unsuccessful.")
