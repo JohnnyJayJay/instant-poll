@@ -85,7 +85,7 @@ git pull
 docker compose build 
 ```
 
-If there are changes to the set of commands provided by instant-poll, you have to [re-register them](#Slash-Command-Registration).
+If there are changes to the set of commands provided by instant-poll, you have to [re-register them](#Slash-Commands-Registration).
 
 Restarting the bot works via `docker compose down` and then [running](#Run) again.
 
