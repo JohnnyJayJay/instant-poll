@@ -30,7 +30,7 @@
 (defn -main [& _args]
   (when (System/getenv "UPDATE_COMMANDS")
     (log/info "Updating global slash commands")
-    (mount/start #'state/config #'state/discord-conn)
+    (mount/start #'state/config #'state/discord-conn #'state/app-id)
     (let [result @(dm/bulk-overwrite-global-application-commands! state/discord-conn state/app-id [poll-command])]
       (mount/stop)
       (when (instance? Exception result)
